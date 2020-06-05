@@ -15,7 +15,11 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="ADD_SUFFIX_TO_CHERRY_PICKS_OF_PUBLISHED_COMMITS" value="false" />
+    <option name="PREVIEW_PUSH_ON_COMMIT_AND_PUSH" value="false" />
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="WARN_ABOUT_CRLF" value="false" />
+    <option name="WARN_ABOUT_DETACHED_HEAD" value="false" />
   </component>
   <component name="ProjectId" id="1crBLw1V3hzqui97WqdpJeCCOzY" />
   <component name="ProjectViewState">
@@ -26,6 +30,81 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom" />
+    <property name="project.structure.last.edited" value="Libraries" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.0" />
+    <property name="settings.editor.selected.configurable" value="vcs.Git" />
+  </component>
+  <component name="RunManager" selected="Application.MainComponent">
+    <configuration name="Client" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Networking.Client" />
+      <module name="Piston" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Networking.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Game" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Game.Game" />
+      <module name="Piston" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Game.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="HelloWorld (1)" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Engine.HelloWorld" />
+      <module name="Piston" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Engine.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="HelloWorld" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="HelloWorld" />
+      <module name="Piston" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MainComponent" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Engine.MainComponent" />
+      <module name="Piston" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Engine.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.MainComponent" />
+        <item itemvalue="Application.Game" />
+        <item itemvalue="Application.HelloWorld (1)" />
+        <item itemvalue="Application.HelloWorld" />
+        <item itemvalue="Application.Client" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -39,5 +118,63 @@
       <updated>1591276779320</updated>
     </task>
     <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="280" y="22" key="#Notifications" timestamp="1591276969832">
+      <screen x="0" y="0" width="1360" height="728" />
+    </state>
+    <state x="280" y="22" key="#Notifications/0.0.1360.728@0.0.1360.728" timestamp="1591276969832" />
+    <state x="485" y="73" key="#com.intellij.ide.util.MemberChooser" timestamp="1591398310059">
+      <screen x="0" y="0" width="1360" height="728" />
+    </state>
+    <state x="485" y="73" key="#com.intellij.ide.util.MemberChooser/0.0.1360.728@0.0.1360.728" timestamp="1591398310059" />
+    <state x="468" y="118" key="FileChooserDialogImpl" timestamp="1591281160351">
+      <screen x="0" y="0" width="1360" height="728" />
+    </state>
+    <state x="468" y="118" key="FileChooserDialogImpl/0.0.1360.728@0.0.1360.728" timestamp="1591281160351" />
+    <state width="1317" height="176" key="GridCell.Tab.0.bottom" timestamp="1591388436228">
+      <screen x="0" y="0" width="1360" height="728" />
+    </state>
+    <state width="1317" height="176" key="GridCell.Tab.0.bottom/0.0.1360.728@0.0.1360.728" timestamp="1591388436228" />
+    <state width="1317" height="176" key="GridCell.Tab.0.center" timestamp="1591388436228">
+      <screen x="0" y="0" width="1360" height="728" />
+    </state>
+    <state width="1317" height="176" key="GridCell.Tab.0.center/0.0.1360.728@0.0.1360.728" timestamp="1591388436228" />
+    <state width="1317" height="176" key="GridCell.Tab.0.left" timestamp="1591388436228">
+      <screen x="0" y="0" width="1360" height="728" />
+    </state>
+    <state width="1317" height="176" key="GridCell.Tab.0.left/0.0.1360.728@0.0.1360.728" timestamp="1591388436228" />
+    <state width="1317" height="176" key="GridCell.Tab.0.right" timestamp="1591388436228">
+      <screen x="0" y="0" width="1360" height="728" />
+    </state>
+    <state width="1317" height="176" key="GridCell.Tab.0.right/0.0.1360.728@0.0.1360.728" timestamp="1591388436228" />
+    <state width="1317" height="223" key="GridCell.Tab.1.bottom" timestamp="1591366557278">
+      <screen x="0" y="0" width="1360" height="728" />
+    </state>
+    <state width="1317" height="223" key="GridCell.Tab.1.bottom/0.0.1360.728@0.0.1360.728" timestamp="1591366557278" />
+    <state width="1317" height="223" key="GridCell.Tab.1.center" timestamp="1591366557278">
+      <screen x="0" y="0" width="1360" height="728" />
+    </state>
+    <state width="1317" height="223" key="GridCell.Tab.1.center/0.0.1360.728@0.0.1360.728" timestamp="1591366557278" />
+    <state width="1317" height="223" key="GridCell.Tab.1.left" timestamp="1591366557278">
+      <screen x="0" y="0" width="1360" height="728" />
+    </state>
+    <state width="1317" height="223" key="GridCell.Tab.1.left/0.0.1360.728@0.0.1360.728" timestamp="1591366557278" />
+    <state width="1317" height="223" key="GridCell.Tab.1.right" timestamp="1591366557278">
+      <screen x="0" y="0" width="1360" height="728" />
+    </state>
+    <state width="1317" height="223" key="GridCell.Tab.1.right/0.0.1360.728@0.0.1360.728" timestamp="1591366557278" />
+    <state x="189" y="0" key="SettingsEditor" timestamp="1591281167124">
+      <screen x="0" y="0" width="1360" height="728" />
+    </state>
+    <state x="189" y="0" key="SettingsEditor/0.0.1360.728@0.0.1360.728" timestamp="1591281167124" />
+    <state x="375" y="188" key="com.intellij.ide.util.TipDialog" timestamp="1591387209428">
+      <screen x="0" y="0" width="1360" height="728" />
+    </state>
+    <state x="375" y="188" key="com.intellij.ide.util.TipDialog/0.0.1360.728@0.0.1360.728" timestamp="1591387209428" />
+    <state x="343" y="49" width="672" height="678" key="search.everywhere.popup" timestamp="1591317970027">
+      <screen x="0" y="0" width="1360" height="728" />
+    </state>
+    <state x="343" y="49" width="672" height="678" key="search.everywhere.popup/0.0.1360.728@0.0.1360.728" timestamp="1591317970027" />
   </component>
 </project>
