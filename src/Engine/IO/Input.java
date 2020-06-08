@@ -1,6 +1,6 @@
 package Engine.IO;
 
-import Engine.Window;
+import Engine.Renderer.Window;
 import Engine.math.Vector2f;
 import org.lwjgl.BufferUtils;
 
@@ -11,6 +11,14 @@ import java.util.ArrayList;
 import static org.lwjgl.glfw.GLFW.*;
 
 public class Input {
+
+    /*basic implementation
+
+    creates arrays of all the down/up keys with method to check single keys for each
+
+    TODO: replace with more efficient code
+    TODO: TIDY UP
+     */
 
     private static final int NOKEYCODES = 256;
     private static final int NOMOUSECODES = 16;

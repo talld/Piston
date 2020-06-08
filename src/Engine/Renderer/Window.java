@@ -1,12 +1,17 @@
-package Engine;
+package Engine.Renderer;
 
 import org.lwjgl.*;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
+import org.lwjgl.vulkan.VK10;
+import org.lwjgl.vulkan.VKCapabilitiesInstance;
+import org.lwjgl.vulkan.VkInstance;
+import org.lwjgl.vulkan.VkInstanceCreateInfo;
+
+import static Engine.Renderer.RenderUtil.VKInit;
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
@@ -20,11 +25,13 @@ public class Window {
     public static void createWindow(int width, int height, String title, int vis, int resize){
 
         if(!glfwInit()) throw new IllegalStateException("GLFW init failed");
-        videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
-        glfwDefaultWindowHints();
-        glfwWindowHint(GLFW_VISIBLE,vis);
-        glfwWindowHint(GLFW_RESIZABLE,resize);
+        //videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
+        //glfwDefaultWindowHints();
+        //glfwWindowHint(GLFW_VISIBLE,vis);
+        glfwWindowHint(GLFW_CLIENT_API,GLFW_NO_API);
+        glfwWindowHint(GLFW_RESIZABLE,GLFW_FALSE);
         context = glfwCreateWindow(width,height,title,NULL,NULL);
+        setCurrent();
         if(context == 0l) throw new IllegalStateException("Window init failed");
         // Make the window visible
         GLFW.glfwShowWindow(context);
@@ -32,8 +39,9 @@ public class Window {
 
     public static void render(){
         glfwPollEvents();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
-        GLFW.glfwSwapBuffers(context);
+
+        glfwSwapBuffers(context);
+
     }
 
     public static boolean isCloseRequested(){
@@ -41,7 +49,9 @@ public class Window {
     }
 
     public static void dispose(){
-        GLFW.glfwDestroyWindow(context);
+
+        glfwDestroyWindow(context);
+        glfwTerminate();
     }
 
     public static long getContex(){
@@ -62,6 +72,6 @@ public class Window {
 
     public static void setCurrent(){
         glfwMakeContextCurrent(context);
-        GL.createCapabilities();
+
     }
 }

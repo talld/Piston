@@ -40,4 +40,8 @@ public class Client {
     private static void close() throws IOException {
         soc.close();
     }
+
+    private static void sendPacket(){
+
+    }
 }

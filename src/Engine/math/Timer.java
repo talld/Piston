@@ -1,4 +1,4 @@
-package Engine;
+package Engine.math;
 
 public class Timer {
 
