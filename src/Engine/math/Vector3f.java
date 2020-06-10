@@ -39,7 +39,7 @@ public class Vector3f {
         );
     }
 
-    public Vector3f normalize(){
+    public Vector3f normalize(){ //normali
         float length = this.length();
 
         this.x /=length;

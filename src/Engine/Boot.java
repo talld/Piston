@@ -6,8 +6,7 @@ import Engine.Renderer.Window;
 import Game.Game;
 import org.lwjgl.vulkan.VK10;
 
-import static Engine.Renderer.RenderUtil.VKInit;
-import static Engine.Renderer.RenderUtil.initRender;
+import static Engine.Renderer.RenderUtil.*;
 
 public class Boot {
 
@@ -23,7 +22,8 @@ public class Boot {
 
     public void init() {
         //init
-        VKInit();
+        VkInit();
+        VkInitDebug();
         //-------------
         return;
     }
@@ -46,20 +46,18 @@ public class Boot {
     }
 
     public void cleanUp(){
-
-        VK10.vkDestroyInstance(RenderUtil.getInstance(),null);
-
         Window.dispose();
+        VK10.vkDestroyDevice(getLogicDevice(), null);
+        VK10.vkDestroyInstance(RenderUtil.getInstance(),null);
     }
 
     public void update() {
-        //Input.update();
-        //game.update();
+        Input.update();
+        game.update();
         return;
     }
 
     public void render() {
-
         Window.render();
         return;
     }

@@ -9,7 +9,7 @@ import org.lwjgl.vulkan.VKCapabilitiesInstance;
 import org.lwjgl.vulkan.VkInstance;
 import org.lwjgl.vulkan.VkInstanceCreateInfo;
 
-import static Engine.Renderer.RenderUtil.VKInit;
+import static Engine.Renderer.RenderUtil.VkInit;
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryStack.*;
@@ -25,16 +25,15 @@ public class Window {
     public static void createWindow(int width, int height, String title, int vis, int resize){
 
         if(!glfwInit()) throw new IllegalStateException("GLFW init failed");
-        //videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
-        //glfwDefaultWindowHints();
-        //glfwWindowHint(GLFW_VISIBLE,vis);
+
         glfwWindowHint(GLFW_CLIENT_API,GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE,GLFW_FALSE);
         context = glfwCreateWindow(width,height,title,NULL,NULL);
         setCurrent();
         if(context == 0l) throw new IllegalStateException("Window init failed");
-        // Make the window visible
-        GLFW.glfwShowWindow(context);
+
+
+        GLFW.glfwShowWindow(context); // Make the window visible
     }
 
     public static void render(){
