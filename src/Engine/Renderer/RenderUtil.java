@@ -183,7 +183,7 @@ public class RenderUtil {
         }
         lDevice = new VkDevice(device,chosenDevice,dCInfo);
 
-        graphicsQueue = createDeviceQueue(lDevice,graphicsFamilyIndex);
+        graphicsQueue = VkCreateDeviceQueue(lDevice,graphicsFamilyIndex);
 
         dCInfo.free();
     }
