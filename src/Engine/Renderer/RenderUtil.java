@@ -6,7 +6,7 @@ import org.lwjgl.system.Pointer;
 import org.lwjgl.vulkan.*;
 import org.lwjgl.glfw.*;
 import org.lwjgl.glfw.GLFW.*;
-
+import org.lwjgl.glfw.GLFWVulkan.*;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -15,18 +15,22 @@ import java.nio.charset.StandardCharsets;
 
 import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
 import static org.lwjgl.system.MemoryUtil.*;
+import static org.lwjgl.vulkan.EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
+import static org.lwjgl.vulkan.KHRSurface.vkGetPhysicalDeviceSurfaceSupportKHR;
 import static org.lwjgl.vulkan.VK10.*;
 
 public class RenderUtil {
 
     private static VkInstance Instance;
     private static VkPhysicalDevice chosenDevice;
-    private static int graphicsFamilyIndex;
+    private static int graphicsFamilyIndex =-1;
+    private static int presentFamilyIndex =-1;
     private static VkDevice lDevice;
     private static VkQueue graphicsQueue;
-
+    private static PointerBuffer glfwExtensions;
 
     public static void cls(){
+
     }
 
     public static void initRender(){
@@ -46,11 +50,22 @@ public class RenderUtil {
         cInfo.sType(VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO);                   //auto-generate structure info
         cInfo.pApplicationInfo(appInfo);                                       //parse app info
 
-        glfwGetRequiredInstanceExtensions();                                   //find required extensions
-        cInfo.enabledExtensionCount();                                         //count them
-        cInfo.ppEnabledExtensionNames();                                       //enable them
+        glfwExtensions = glfwGetRequiredInstanceExtensions();    //find required extensions
+        if(glfwExtensions == null){
+            throw new IllegalStateException("could not create required instances");
+        }
 
-        cInfo.enabledLayerCount();                                             //enable layers
+        PointerBuffer pRequiredExtensions  = memAllocPointer(glfwExtensions.remaining()+1);
+        pRequiredExtensions.put(glfwExtensions);
+        ByteBuffer VK_EXT_DEBUG_REPORT_EXTENSION = memUTF8(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+        pRequiredExtensions.put(VK_EXT_DEBUG_REPORT_EXTENSION);
+        pRequiredExtensions.flip();                                            //put the debug extension first
+
+        cInfo.ppEnabledExtensionNames(glfwExtensions);                         //enable them
+
+
+
+
         PointerBuffer pBInstance = memAllocPointer(1);                    //allocate memory for Vulkan instance
         int  check = VK10.vkCreateInstance(cInfo,null,pBInstance);   //create instance with check int
         long pInstance = pBInstance.get(0);                                    //gen the position of newly created instance
@@ -60,6 +75,8 @@ public class RenderUtil {
             Instance = new VkInstance(pInstance,cInfo);                       //assign instance;
         }
         memFree(pBInstance);                                                 //free up space taken buy the instance point now that it has been assigned to a var
+        memFree(VK_EXT_DEBUG_REPORT_EXTENSION);
+        memFree(pRequiredExtensions);
                                                                              //calloc is auto removed from the heap and destroyed after use so no need to clean them up
 
         VkInitHardware();                                                    //call next step;
@@ -91,7 +108,12 @@ public class RenderUtil {
 
 
         memFree(pDevices);                                                                         //free pointers
-        VkCreateGraphicsFamily(VkFindQueueFamily(chosenDevice,0,VK_QUEUE_GRAPHICS_BIT));
+
+    }
+
+    public static void VkPostInit(){
+        VkFindQueueFamilys(chosenDevice);
+        VkCreateGraphicsFamily();
     }
 
     private static VkPhysicalDevice VkSelectDevice(PointerBuffer pDevices){//
@@ -119,9 +141,12 @@ public class RenderUtil {
         vkGetPhysicalDeviceFeatures(device,features);                                          //bind device features to fields
         vkGetPhysicalDeviceProperties(device,properties);                                      //bind device properties to fields
 
-        if(VkFindQueueFamily(device,0,VK_QUEUE_GRAPHICS_BIT)==-1){ //is gpu compatible with main core systems
+        if(VkFindGraphicQueueFamily(device,0)==-1){                                    //is gpu compatible with main core systems
             return -1;                                                                          //device has no score as bit compatible
         }
+
+        
+
 
         int maxImage = properties.limits().maxImageDimension2D();                              //max texture size
         float maxAniso = properties.limits().maxSamplerAnisotropy();                           //max points for anisotropic filtering
@@ -139,7 +164,7 @@ public class RenderUtil {
         return score;                                                                          //gpu rating
     }
 
-    public static int VkFindQueueFamily(VkPhysicalDevice device, int startIndex,int queueBit){                               //is gpu compatible with main core systems TODO: add more checks as needed
+    public static int VkFindGraphicQueueFamily(VkPhysicalDevice device, int startIndex){                            //is gpu compatible with main core systems TODO: add more checks as needed
         IntBuffer QFCount = memAllocInt(1);                                                                    //allocate memory for family counter
         vkGetPhysicalDeviceQueueFamilyProperties(device,QFCount,null);                         //count the families
         int IQFCount = QFCount.get(0);                                                                              //int version for processing
@@ -147,21 +172,78 @@ public class RenderUtil {
         vkGetPhysicalDeviceQueueFamilyProperties(device,QFCount,QFProperties);                                      //bind the properties to the buffer
         int QueueFamilyIndex;
         for (QueueFamilyIndex=startIndex; QueueFamilyIndex < IQFCount; QueueFamilyIndex++){                         //loop through every family
-            if ((QFProperties.get(QueueFamilyIndex).queueFlags() & queueBit) != 0)                                  //is it a compatible graphics family?
+            if ((QFProperties.get(QueueFamilyIndex).queueFlags() & VK_QUEUE_GRAPHICS_BIT) != 0)                     //is it a compatible graphics family?
                 memFree(QFCount);                                                                                   //memory clean up
-                memFree(QFProperties);
-                return QueueFamilyIndex;                                                                            //return it
+            memFree(QFProperties);
+            return QueueFamilyIndex;                                                                            //return it
         }
         memFree(QFCount);                                                                                           //memory clean up
         memFree(QFProperties);
         return -1;                                                                                                  //couldn't find graphics family
     }
 
+    public static void VkFindQueueFamilys(VkPhysicalDevice device){
+        IntBuffer QFCount = memAllocInt(1);                                                                    //allocate memory for family counter
+        vkGetPhysicalDeviceQueueFamilyProperties(device,QFCount,null);                         //count the families
+        int IQFCount = QFCount.get(0);                                                                              //int version for processing
+        VkQueueFamilyProperties.Buffer QFProperties = VkQueueFamilyProperties.calloc(IQFCount);                     //create a queue family buffer with IQFCount Blocks
+        vkGetPhysicalDeviceQueueFamilyProperties(device,QFCount,QFProperties);                                      //bind the properties to the buffer
+        int queueFamilyIndex;
+        IntBuffer surfaces = memAllocInt(IQFCount);
+        for (queueFamilyIndex=0; queueFamilyIndex < IQFCount; queueFamilyIndex++){                                  //loop through every family
+            surfaces.position(queueFamilyIndex);
+            vkGetPhysicalDeviceSurfaceSupportKHR(device,queueFamilyIndex,Window.getSurface(),surfaces);
+        }
 
-    private static void VkCreateGraphicsFamily(int familyIndex){
+        IntBuffer graphics =memAllocInt(IQFCount);
+        for (queueFamilyIndex=0; queueFamilyIndex < IQFCount; queueFamilyIndex++){                                  //loop through every family
+            if ((QFProperties.get(queueFamilyIndex).queueFlags() & VK_QUEUE_GRAPHICS_BIT) != 0) {                   //is it a compatible graphics family?
+                graphics.put(queueFamilyIndex);                                                                     //add it to the list
+            }else{
+                graphics.put(-1);                                                                                   //if it isn't mark it as such
+            }
+                memFree(QFProperties);
+                memFree(QFCount);
+        }
+        boolean foundPair = false;
+        for (queueFamilyIndex=0; queueFamilyIndex < IQFCount; queueFamilyIndex++){
+            if((graphics.get(queueFamilyIndex)!=-1)&(surfaces.get(queueFamilyIndex)==VK_TRUE)){
+                foundPair = true;
+                graphicsFamilyIndex = presentFamilyIndex = queueFamilyIndex;
+            }
+        }
+        /*
+        if(!foundPair){
+            for(queueFamilyIndex=0; queueFamilyIndex < IQFCount; queueFamilyIndex++){
+                if(graphics.get(queueFamilyIndex)!=-1){
+                    graphicsFamilyIndex = queueFamilyIndex;
+                    break;
+                }
+            }
+
+            for(queueFamilyIndex=0; queueFamilyIndex < IQFCount; queueFamilyIndex++){
+                if(surfaces.get(queueFamilyIndex)==VK_TRUE){
+                    presentFamilyIndex = queueFamilyIndex;
+                    break;
+                }
+            }
+        }
+        */
+        if(presentFamilyIndex == -1){
+            throw new IllegalStateException("failed to find a surface queue family");
+        }
+
+        if(graphicsFamilyIndex == -1){
+            throw new IllegalStateException("failed to find a graphics queue family");
+        }
+
+        memFree(QFCount);                                                                                           //memory clean up
+        memFree(QFProperties);
+    }
+
+    private static void VkCreateGraphicsFamily(){
         VkDeviceQueueCreateInfo.Buffer dCQInfo = VkDeviceQueueCreateInfo.calloc(1);
         dCQInfo.sType(VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);
-        graphicsFamilyIndex = VkFindQueueFamily(chosenDevice,0,VK_QUEUE_GRAPHICS_BIT);
         dCQInfo.queueFamilyIndex(graphicsFamilyIndex);
         FloatBuffer pPriority = memAllocFloat(1).put(0.0f);
         pPriority.flip();
@@ -184,16 +266,19 @@ public class RenderUtil {
         lDevice = new VkDevice(device,chosenDevice,dCInfo);
 
         graphicsQueue = VkCreateDeviceQueue(lDevice,graphicsFamilyIndex);
-
         dCInfo.free();
+    }
+
+    private static void VkCreatePresentFamily(){
+
     }
 
     public static VkQueue VkCreateDeviceQueue(VkDevice device, int queueFamilyIndex){
         PointerBuffer pQueue = memAllocPointer(1);
-        vkGetDeviceQueue(device,queueFamilyIndex,0,pQueue);
+        vkGetDeviceQueue(device,queueFamilyIndex,0,pQueue);              //bind the family to the point
         long queue =pQueue.get(0);
         memFree(pQueue);
-        return new VkQueue(queue,device);
+        return new VkQueue(queue,device);                                          //create and return device Queue from family
     }
 
     public static VkInstance getInstance() {

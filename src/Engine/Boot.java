@@ -7,6 +7,7 @@ import Game.Game;
 import org.lwjgl.vulkan.VK10;
 
 import static Engine.Renderer.RenderUtil.*;
+import static org.lwjgl.vulkan.KHRSurface.vkDestroySurfaceKHR;
 
 public class Boot {
 
@@ -22,20 +23,18 @@ public class Boot {
 
     public void init() {
         //init
+        Window.glfwPreInit();
         VkInit();
         VkInitDebug();
         //-------------
         return;
     }
 
-    public void postInit() {
-        //post init
+    public void postInit(){
         Window.createWindow(640,480,"title",0,1);
-
-
-        //----------
-        return;
+        VkPostInit();
     }
+
 
     public void gameLoop() {
         while(!Window.isCloseRequested()){
@@ -47,6 +46,7 @@ public class Boot {
 
     public void cleanUp(){
         Window.dispose();
+        vkDestroySurfaceKHR(RenderUtil.getInstance(),Window.getSurface(),null);
         VK10.vkDestroyDevice(getLogicDevice(), null);
         VK10.vkDestroyInstance(RenderUtil.getInstance(),null);
     }
