@@ -12,22 +12,33 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
 import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.vulkan.EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
-import static org.lwjgl.vulkan.KHRSurface.vkGetPhysicalDeviceSurfaceSupportKHR;
+import static org.lwjgl.vulkan.KHRSurface.*;
+import static org.lwjgl.vulkan.KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 import static org.lwjgl.vulkan.VK10.*;
 
 public class RenderUtil {
 
     private static VkInstance Instance;
     private static VkPhysicalDevice chosenDevice;
+    private static VkDevice lDevice;
+
     private static int graphicsFamilyIndex =-1;
     private static int presentFamilyIndex =-1;
-    private static VkDevice lDevice;
     private static VkQueue graphicsQueue;
+    public static ArrayList<Integer> Queues = new ArrayList<Integer>();
+
     private static PointerBuffer glfwExtensions;
+
+    private static VkSurfaceCapabilitiesKHR pSCapabilities;
+    private static int presentModeCount;
+    private static int colorFormat;
+    private static int colorSpace;
+    private static int swapChain;
 
     public static void cls(){
 
@@ -114,18 +125,18 @@ public class RenderUtil {
     public static void VkPostInit(){
         VkFindQueueFamilys(chosenDevice);
         VkCreateGraphicsFamily();
+        VkCreateSwapChain(Window.getHeight(),Window.getWidth(),false);
     }
 
     private static VkPhysicalDevice VkSelectDevice(PointerBuffer pDevices){//
         int highest = 0;
         long bestDevice = -1;
         long currentDevice = 0;
-        for(int i = 0; i<(pDevices.remaining());i++){//not the most efficient system in the world but its negligible
-            System.out.println(i);
+        for(int i = 0; i<(pDevices.remaining());i++){       //select highest scoring device
             currentDevice =pDevices.get(i);
             if(highest<VkEvaluateDevice(currentDevice)){
                highest = VkEvaluateDevice(currentDevice);
-               bestDevice = currentDevice;
+               bestDevice = currentDevice;                  //not the most efficient system in the world but as an init stage it's negligible
            }
         }
         if(bestDevice == -1){
@@ -141,12 +152,9 @@ public class RenderUtil {
         vkGetPhysicalDeviceFeatures(device,features);                                          //bind device features to fields
         vkGetPhysicalDeviceProperties(device,properties);                                      //bind device properties to fields
 
-        if(VkFindGraphicQueueFamily(device,0)==-1){                                    //is gpu compatible with main core systems
-            return -1;                                                                          //device has no score as bit compatible
+        if(VkFindGraphicQueueFamily(device,0)==-1){
+            return -1;
         }
-
-        
-
 
         int maxImage = properties.limits().maxImageDimension2D();                              //max texture size
         float maxAniso = properties.limits().maxSamplerAnisotropy();                           //max points for anisotropic filtering
@@ -161,6 +169,8 @@ public class RenderUtil {
         }else{
             score+=(maxMemAloc+maxGeoShaderIn+maxFragShaderIn);                                //shared with system memory : worse
         }
+
+
         return score;                                                                          //gpu rating
     }
 
@@ -191,28 +201,31 @@ public class RenderUtil {
         int queueFamilyIndex;
         IntBuffer surfaces = memAllocInt(IQFCount);
         for (queueFamilyIndex=0; queueFamilyIndex < IQFCount; queueFamilyIndex++){                                  //loop through every family
-            surfaces.position(queueFamilyIndex);
-            vkGetPhysicalDeviceSurfaceSupportKHR(device,queueFamilyIndex,Window.getSurface(),surfaces);
+            surfaces.position(queueFamilyIndex);                                                                    //checking for present support
+            vkGetPhysicalDeviceSurfaceSupportKHR(device,queueFamilyIndex,Window.getSurface(),surfaces);             //add VK_TRUE/FALSE for every entry for its support
         }
 
         IntBuffer graphics =memAllocInt(IQFCount);
-        for (queueFamilyIndex=0; queueFamilyIndex < IQFCount; queueFamilyIndex++){                                  //loop through every family
-            if ((QFProperties.get(queueFamilyIndex).queueFlags() & VK_QUEUE_GRAPHICS_BIT) != 0) {                   //is it a compatible graphics family?
-                graphics.put(queueFamilyIndex);                                                                     //add it to the list
+        for (queueFamilyIndex=0; queueFamilyIndex < IQFCount; queueFamilyIndex++){                                   //loop through every family
+            if ((QFProperties.get(queueFamilyIndex).queueFlags() & VK_QUEUE_GRAPHICS_BIT) != 0) {                    //is it a compatible graphics family?
+                graphics.put(queueFamilyIndex);                                                                      //add it to the list
             }else{
-                graphics.put(-1);                                                                                   //if it isn't mark it as such
+                graphics.put(-1);                                                                                    //if it isn't mark it as such
             }
                 memFree(QFProperties);
                 memFree(QFCount);
         }
-        boolean foundPair = false;
+
+        //boolean foundPair = false;
         for (queueFamilyIndex=0; queueFamilyIndex < IQFCount; queueFamilyIndex++){
-            if((graphics.get(queueFamilyIndex)!=-1)&(surfaces.get(queueFamilyIndex)==VK_TRUE)){
-                foundPair = true;
-                graphicsFamilyIndex = presentFamilyIndex = queueFamilyIndex;
+            if((graphics.get(queueFamilyIndex)!=-1)&(surfaces.get(queueFamilyIndex)==VK_TRUE)){                      //loop through every family to find one that supports both
+                //foundPair = true;
+                graphicsFamilyIndex = queueFamilyIndex;
+                presentFamilyIndex = queueFamilyIndex;
             }
         }
-        /*
+        /* TODO: add support for multiple queue indices
+        // section for multiple queue indices still requires support in queue creation methods
         if(!foundPair){
             for(queueFamilyIndex=0; queueFamilyIndex < IQFCount; queueFamilyIndex++){
                 if(graphics.get(queueFamilyIndex)!=-1){
@@ -242,19 +255,28 @@ public class RenderUtil {
     }
 
     private static void VkCreateGraphicsFamily(){
-        VkDeviceQueueCreateInfo.Buffer dCQInfo = VkDeviceQueueCreateInfo.calloc(1);
-        dCQInfo.sType(VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);
+        VkDeviceQueueCreateInfo.Buffer dCQInfos = VkDeviceQueueCreateInfo.calloc(Queues.size());                    //creation info for multiple queue indices currently unused
+
+
+        VkDeviceQueueCreateInfo.Buffer dCQInfo = VkDeviceQueueCreateInfo.calloc(1);                      //device creation info
+        dCQInfo.sType(VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO);
         dCQInfo.queueFamilyIndex(graphicsFamilyIndex);
         FloatBuffer pPriority = memAllocFloat(1).put(0.0f);
         pPriority.flip();
         dCQInfo.pQueuePriorities(pPriority);
 
-        VkPhysicalDeviceFeatures dFeatures = VkPhysicalDeviceFeatures.calloc();
 
-        VkDeviceCreateInfo dCInfo = VkDeviceCreateInfo.calloc();
+
+        VkPhysicalDeviceFeatures dFeatures = VkPhysicalDeviceFeatures.calloc();                                   //device feature info
+        ByteBuffer VK_KHR_SWAPCHAIN_EXTENSION = memUTF8(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        glfwExtensions.put(VK_KHR_SWAPCHAIN_EXTENSION);                                                           //add swap chain extension
+        glfwExtensions.flip();                                                                                    //make it the first in the list
+        VkDeviceCreateInfo dCInfo = VkDeviceCreateInfo.calloc();                                                  //device creation info
         dCInfo.sType(VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);
+        dCInfo.ppEnabledExtensionNames(glfwExtensions);                                                           //bind extensions
         dCInfo.pQueueCreateInfos(dCQInfo);
         dCInfo.pEnabledFeatures(dFeatures);
+
 
         PointerBuffer pDevice = memAllocPointer(1);
         int check = vkCreateDevice(chosenDevice,dCInfo,null,pDevice);
@@ -269,9 +291,6 @@ public class RenderUtil {
         dCInfo.free();
     }
 
-    private static void VkCreatePresentFamily(){
-
-    }
 
     public static VkQueue VkCreateDeviceQueue(VkDevice device, int queueFamilyIndex){
         PointerBuffer pQueue = memAllocPointer(1);
@@ -280,6 +299,74 @@ public class RenderUtil {
         memFree(pQueue);
         return new VkQueue(queue,device);                                          //create and return device Queue from family
     }
+
+    private static void chooseColorFormatAndSpace(VkSurfaceFormatKHR.Buffer surfFormats){
+        if (presentModeCount == 1 && surfFormats.get(0).format() == VK_FORMAT_UNDEFINED) {
+            colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
+        } else {
+            colorFormat = surfFormats.get(0).format();
+        }
+        colorSpace = surfFormats.get(0).colorSpace();
+    }
+
+    public static void VkCreateSwapChain(int newWidth,int newHeight,boolean reCreate){
+
+        pSCapabilities = VkSurfaceCapabilitiesKHR.calloc();
+        int check = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(chosenDevice,Window.getSurface(),pSCapabilities);
+        if(check!=VK_SUCCESS){
+            throw new IllegalStateException("Failed to find number of device surface capabilities ");
+        }
+
+        IntBuffer pPresentModeCount = memAllocInt(1);
+        check = vkGetPhysicalDeviceSurfacePresentModesKHR(chosenDevice,Window.getSurface(),pPresentModeCount, null);
+        presentModeCount = pPresentModeCount.get(0);
+        if (check != VK_SUCCESS) {
+            throw new IllegalStateException("Failed to get number of physical device surface presentation modes");
+        }
+
+        IntBuffer pPresentModes = memAllocInt(presentModeCount);
+        check = vkGetPhysicalDeviceSurfacePresentModesKHR(chosenDevice,Window.getSurface(), pPresentModeCount, pPresentModes);
+        memFree(pPresentModeCount);
+        if (check != VK_SUCCESS) {
+            throw new IllegalStateException("Failed to get device surface presentation modes");
+        }
+
+        IntBuffer pFormatCount = memAllocInt(1);
+        int err = vkGetPhysicalDeviceSurfaceFormatsKHR(chosenDevice,Window.getSurface(), pFormatCount, null);
+        int formatCount = pFormatCount.get(0);
+        if (err != VK_SUCCESS) {
+            throw new IllegalStateException("Failed to get  device surface format count");
+        }
+
+        VkSurfaceFormatKHR.Buffer surfFormats = VkSurfaceFormatKHR.calloc(formatCount);
+        err = vkGetPhysicalDeviceSurfaceFormatsKHR(chosenDevice,Window.getSurface(), pFormatCount, surfFormats);
+        memFree(pFormatCount);
+        if (err != VK_SUCCESS) {
+            throw new IllegalStateException("Failed to get device surface formats");
+        }
+
+        chooseColorFormatAndSpace(surfFormats);
+
+        int ScPresentMode = VK_PRESENT_MODE_FIFO_KHR;
+        for(int i = 0; i<formatCount;i++){
+            if(pPresentModes.get(i)==VK_PRESENT_MODE_MAILBOX_KHR){
+                ScPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+                break;
+            }
+        }
+
+        VkExtent2D extent2D = pSCapabilities.currentExtent();
+        int width = extent2D.width();
+        int height = extent2D.height();
+
+        int desiredNumberOfSwapchainImages = pSCapabilities.minImageCount() + 1;
+        if ((pSCapabilities.maxImageCount() > 0) && (desiredNumberOfSwapchainImages > pSCapabilities.maxImageCount())) {
+            desiredNumberOfSwapchainImages = pSCapabilities.maxImageCount();
+        }
+
+
+    }
+
 
     public static VkInstance getInstance() {
         return Instance;

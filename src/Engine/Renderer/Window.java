@@ -28,23 +28,42 @@ public class Window {
     private static long context;
     private static GLFWVidMode videoMode;
     private static long surface;
+    private static int windowWidth;
+    private static int windowHeight;
+
 
     public static void createWindow(int width, int height, String title, int vis, int resize){
 
-        glfwWindowHint(GLFW_CLIENT_API,GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE,GLFW_FALSE);
-        context = glfwCreateWindow(width,height,title,NULL,NULL);
+        glfwWindowHint(GLFW_CLIENT_API,GLFW_NO_API);                           //disabling the default OpenGL window settings
+        glfwWindowHint(GLFW_RESIZABLE,GLFW_FALSE);                             //disabling the ability to resize the window until it can be accounted for
+        windowWidth = width;
+        windowHeight = height;
+        context = glfwCreateWindow(windowWidth,windowHeight,title,NULL,NULL);  //create window and pointer to its context
         setCurrent();
-        if(context == 0l) throw new IllegalStateException("Window init failed");
+        if(context == 0) throw new IllegalStateException("Window init failed");
 
-        LongBuffer pSuface = memAllocLong(1);
-        int check = glfwCreateWindowSurface(RenderUtil.getInstance(),context,null,pSuface);
+        LongBuffer pSurface = memAllocLong(1);
+        int check = glfwCreateWindowSurface(RenderUtil.getInstance(),context,null,pSurface);
         if(check != VK_SUCCESS){
             throw new IllegalStateException("Failed to create surface");
         }
-        surface = pSuface.get(0);
-
+        surface = pSurface.get(0); //set surface to Vulkan to use
+        memFree(pSurface);
         GLFW.glfwShowWindow(context); // Make the window visible
+    }
+
+    public static void update(){
+        // Handle window resize TODO window resizing maths
+        GLFWWindowSizeCallback windowSizeCallback = new GLFWWindowSizeCallback() {
+            public void invoke(long window, int width, int height) {
+                if (width <= 0 || height <= 0)
+                    return;
+                width = width;
+                height = height;
+            }
+        };
+
+
     }
 
     public static void render(){
@@ -64,7 +83,7 @@ public class Window {
         glfwTerminate();
     }
 
-    public static long getContex(){
+    public static long getContext(){
         return context;
     }
 
@@ -73,11 +92,19 @@ public class Window {
     }
 
     public static int getWidth(){
-        return videoMode.width();
+        return windowWidth;
     }
 
-    public static int getheight(){
-        return videoMode.height();
+    public static int getHeight(){
+        return windowHeight;
+    }
+
+    public static void setHeight(int height){
+        windowHeight = height;
+    }
+
+    public static void setWidth(int width){
+        windowWidth = width;
     }
 
     public static void setCurrent(){glfwMakeContextCurrent(context);}

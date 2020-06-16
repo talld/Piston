@@ -127,7 +127,7 @@ public class Input {
     }
 
     public static int getKey(int keyCode){
-        return glfwGetKey(Window.getContex(),keyCode);
+        return glfwGetKey(Window.getContext(),keyCode);
     }
 
     public static boolean checkKeyDown(int keyCode){
@@ -151,7 +151,7 @@ public class Input {
     }
 
     public static int getMouse(int mouseCode){
-        return (glfwGetMouseButton(Window.getContex(),mouseCode));
+        return (glfwGetMouseButton(Window.getContext(),mouseCode));
     }
 
     public static boolean checkMousePressed(int keyCode){
@@ -176,7 +176,7 @@ public class Input {
         Vector2f mousePos = new Vector2f();
         DoubleBuffer posX = BufferUtils.createDoubleBuffer(1);
         DoubleBuffer posY = BufferUtils.createDoubleBuffer(1);
-        glfwGetCursorPos(Window.getContex(),posX,posY);
+        glfwGetCursorPos(Window.getContext(),posX,posY);
         mousePos.setX((float) posX.get(0));
         mousePos.setY((float)posY.get(0));
         return mousePos;
