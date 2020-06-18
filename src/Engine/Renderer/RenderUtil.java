@@ -10,6 +10,7 @@ import org.lwjgl.glfw.GLFWVulkan.*;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.nio.LongBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.vulkan.EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
 import static org.lwjgl.vulkan.KHRSurface.*;
-import static org.lwjgl.vulkan.KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+import static org.lwjgl.vulkan.KHRSwapchain.*;
 import static org.lwjgl.vulkan.VK10.*;
 
 public class RenderUtil {
@@ -38,7 +39,9 @@ public class RenderUtil {
     private static int presentModeCount;
     private static int colorFormat;
     private static int colorSpace;
-    private static int swapChain;
+
+    private static long swapChain;
+
 
     public static void cls(){
 
@@ -364,7 +367,27 @@ public class RenderUtil {
             desiredNumberOfSwapchainImages = pSCapabilities.maxImageCount();
         }
 
-
+        VkSwapchainCreateInfoKHR cInfo = VkSwapchainCreateInfoKHR.calloc();
+        cInfo.sType(VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR);
+        cInfo.surface(Window.getSurface());
+        cInfo.minImageCount(desiredNumberOfSwapchainImages);
+        cInfo.imageFormat(colorFormat);
+        cInfo.imageColorSpace(colorSpace);
+        cInfo.imageUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+        cInfo.preTransform(pSCapabilities.currentTransform());
+        cInfo.imageArrayLayers(1);
+        cInfo.imageSharingMode(VK_SHARING_MODE_EXCLUSIVE);
+        cInfo.presentMode(ScPresentMode);
+        cInfo.clipped(true);
+        cInfo.compositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR);
+        cInfo.imageExtent().width(width).height(height);
+        LongBuffer pSwapChain = memAllocLong(1);
+        check = vkCreateSwapchainKHR(lDevice,cInfo,null,pSwapChain);
+        if(check!=VK_SUCCESS){
+            throw new IllegalStateException("Failed to create swap chain");
+        }
+        swapChain = pSwapChain.get(0);
+        memFree(pSwapChain);
     }
 
 
