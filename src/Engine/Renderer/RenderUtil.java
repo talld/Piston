@@ -282,15 +282,15 @@ public class RenderUtil {
 
 
         PointerBuffer pDevice = memAllocPointer(1);
-        int check = vkCreateDevice(chosenDevice,dCInfo,null,pDevice);
+        int check = vkCreateDevice(chosenDevice,dCInfo,null,pDevice);                                   //create the logical device in memory
         long device = pDevice.get(0);
         memFree(pDevice);
         if(check != VK_SUCCESS){
             throw new  IllegalStateException("Failed to create logical device");
         }
-        lDevice = new VkDevice(device,chosenDevice,dCInfo);
+        lDevice = new VkDevice(device,chosenDevice,dCInfo);                                                      //create object for logical device
 
-        graphicsQueue = VkCreateDeviceQueue(lDevice,graphicsFamilyIndex);
+        graphicsQueue = VkCreateDeviceQueue(lDevice,graphicsFamilyIndex);                                        //bind the graphics family to a queue object
         dCInfo.free();
     }
 
@@ -303,17 +303,17 @@ public class RenderUtil {
         return new VkQueue(queue,device);                                          //create and return device Queue from family
     }
 
-    private static void chooseColorFormatAndSpace(VkSurfaceFormatKHR.Buffer surfFormats){
+    private static void chooseColorFormatAndSpace(VkSurfaceFormatKHR.Buffer surfFormats){//chose the best color mode and format for the swapchain
         if (presentModeCount == 1 && surfFormats.get(0).format() == VK_FORMAT_UNDEFINED) {
-            colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
+            colorFormat = VK_FORMAT_B8G8R8A8_UNORM;                                //attempt to get 8bit true color with non liner color for the present mode
         } else {
-            colorFormat = surfFormats.get(0).format();
+            colorFormat = surfFormats.get(0).format();                             //if not available take whatever is
         }
         colorSpace = surfFormats.get(0).colorSpace();
     }
 
     public static void VkCreateSwapChain(int newWidth,int newHeight,boolean reCreate){
-
+                                                                                                                                     //grab all the data required for swapchain creation
         pSCapabilities = VkSurfaceCapabilitiesKHR.calloc();
         int check = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(chosenDevice,Window.getSurface(),pSCapabilities);
         if(check!=VK_SUCCESS){
@@ -347,9 +347,9 @@ public class RenderUtil {
         if (err != VK_SUCCESS) {
             throw new IllegalStateException("Failed to get device surface formats");
         }
-
+                                                                                                                                     //choose the formatting and color space
         chooseColorFormatAndSpace(surfFormats);
-
+                                                                                                                                     //pick present mode fifo is the default but attempts to use mailbox for low lacenty and non tearing
         int ScPresentMode = VK_PRESENT_MODE_FIFO_KHR;
         for(int i = 0; i<formatCount;i++){
             if(pPresentModes.get(i)==VK_PRESENT_MODE_MAILBOX_KHR){
@@ -381,6 +381,7 @@ public class RenderUtil {
         cInfo.clipped(true);
         cInfo.compositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR);
         cInfo.imageExtent().width(width).height(height);
+        cInfo.oldSwapchain(VK_NULL_HANDLE);
         LongBuffer pSwapChain = memAllocLong(1);
         check = vkCreateSwapchainKHR(lDevice,cInfo,null,pSwapChain);
         if(check!=VK_SUCCESS){
@@ -388,6 +389,7 @@ public class RenderUtil {
         }
         swapChain = pSwapChain.get(0);
         memFree(pSwapChain);
+        
     }
 
 
