@@ -352,8 +352,12 @@ public class RenderUtil {
                                                                                                                                      //pick present mode fifo is the default but attempts to use mailbox for low lacenty and non tearing
         int ScPresentMode = VK_PRESENT_MODE_FIFO_KHR;
         for(int i = 0; i<formatCount;i++){
-            if(pPresentModes.get(i)==VK_PRESENT_MODE_MAILBOX_KHR){
-                ScPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+            try {
+                if (pPresentModes.get(i) == VK_PRESENT_MODE_MAILBOX_KHR) {
+                    ScPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+                    break;
+                }
+            }catch (IndexOutOfBoundsException e){
                 break;
             }
         }
@@ -389,8 +393,50 @@ public class RenderUtil {
         }
         swapChain = pSwapChain.get(0);
         memFree(pSwapChain);
-        
+
+        IntBuffer pImageCount = memAllocInt(1);
+        check = vkGetSwapchainImagesKHR(lDevice,swapChain,pImageCount,null);
+        if(check !=VK_SUCCESS){
+            throw new IllegalStateException("Failed to get swapchain image count");
+        }
+        int imageCount = pImageCount.get(0);
+        LongBuffer pSwapchainImages = memAllocLong(imageCount);
+        check = vkGetSwapchainImagesKHR(lDevice,swapChain,pImageCount,pSwapchainImages);
+        if(check !=VK_SUCCESS){
+            throw new IllegalStateException("Failed to get swapchain image count");
+        }
+
+        memFree(pImageCount);
+
+        long[] images = new long[imageCount];
+        long[] imageViews = new long[imageCount];
+        LongBuffer pBufferView = memAllocLong(1);
+        VkImageViewCreateInfo imageViewCreateInfo = VkImageViewCreateInfo.calloc();
+        imageViewCreateInfo.sType(VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO);
+        imageViewCreateInfo.format(colorFormat);
+        imageViewCreateInfo.viewType(VK_IMAGE_VIEW_TYPE_2D);
+        imageViewCreateInfo.components().r(VK_COMPONENT_SWIZZLE_R);
+        imageViewCreateInfo.components().g(VK_COMPONENT_SWIZZLE_G);
+        imageViewCreateInfo.components().b(VK_COMPONENT_SWIZZLE_B);
+        imageViewCreateInfo.components().a(VK_COMPONENT_SWIZZLE_A);
+        imageViewCreateInfo.subresourceRange().aspectMask(VK_IMAGE_ASPECT_COLOR_BIT);
+        imageViewCreateInfo.subresourceRange().levelCount(1);
+        imageViewCreateInfo.subresourceRange().layerCount(1);
+        imageViewCreateInfo.subresourceRange().baseMipLevel(0);
+        imageViewCreateInfo.subresourceRange().baseArrayLayer(0);
+        for(int i = 0; i<imageCount; i++){
+            images[i] = pSwapchainImages.get(i);
+            imageViewCreateInfo.image(images[i]);
+            check = vkCreateImageView(lDevice,imageViewCreateInfo,null,pBufferView);
+            if(check != VK_SUCCESS){
+                throw new IllegalStateException("Failed to create Image View");
+            }
+        }
+        imageViewCreateInfo.free();
+        memFree(pBufferView);
+        memFree(pSwapchainImages);
     }
+
 
 
     public static VkInstance getInstance() {
