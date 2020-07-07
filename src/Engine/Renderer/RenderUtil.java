@@ -41,7 +41,7 @@ public class RenderUtil {
     private static int colorSpace;
 
     private static long swapChain;
-
+    private static long[] imageViews;
 
     public static void cls(){
 
@@ -388,6 +388,7 @@ public class RenderUtil {
         cInfo.oldSwapchain(VK_NULL_HANDLE);
         LongBuffer pSwapChain = memAllocLong(1);
         check = vkCreateSwapchainKHR(lDevice,cInfo,null,pSwapChain);
+
         if(check!=VK_SUCCESS){
             throw new IllegalStateException("Failed to create swap chain");
         }
@@ -409,7 +410,7 @@ public class RenderUtil {
         memFree(pImageCount);
 
         long[] images = new long[imageCount];
-        long[] imageViews = new long[imageCount];
+        imageViews = new long[imageCount];
         LongBuffer pBufferView = memAllocLong(1);
         VkImageViewCreateInfo imageViewCreateInfo = VkImageViewCreateInfo.calloc();
         imageViewCreateInfo.sType(VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO);
@@ -435,6 +436,7 @@ public class RenderUtil {
         imageViewCreateInfo.free();
         memFree(pBufferView);
         memFree(pSwapchainImages);
+
     }
 
 
@@ -456,5 +458,7 @@ public class RenderUtil {
     }
 
 
-
+    public static long[] getImageViews() {
+        return imageViews;
+    }
 }
