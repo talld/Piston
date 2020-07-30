@@ -1,18 +1,12 @@
 package Engine.Renderer;
 
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.system.MemoryUtil;
-import org.lwjgl.system.Pointer;
 import org.lwjgl.vulkan.*;
-import org.lwjgl.glfw.*;
-import org.lwjgl.glfw.GLFW.*;
-import org.lwjgl.glfw.GLFWVulkan.*;
+
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
@@ -43,13 +37,6 @@ public class RenderUtil {
     private static long swapChain;
     private static long[] imageViews;
 
-    public static void cls(){
-
-    }
-
-    public static void initRender(){
-
-    }
 
     public static void VkInit(){
 
@@ -129,6 +116,7 @@ public class RenderUtil {
         VkFindQueueFamilys(chosenDevice);
         VkCreateGraphicsFamily();
         VkCreateSwapChain(Window.getHeight(),Window.getWidth(),false);
+        createGraphicsPipeline();
     }
 
     private static VkPhysicalDevice VkSelectDevice(PointerBuffer pDevices){//
@@ -177,7 +165,7 @@ public class RenderUtil {
         return score;                                                                          //gpu rating
     }
 
-    public static int VkFindGraphicQueueFamily(VkPhysicalDevice device, int startIndex){                            //is gpu compatible with main core systems TODO: add more checks as needed
+    private static int VkFindGraphicQueueFamily(VkPhysicalDevice device, int startIndex){                            //is gpu compatible with main core systems TODO: add more checks as needed
         IntBuffer QFCount = memAllocInt(1);                                                                    //allocate memory for family counter
         vkGetPhysicalDeviceQueueFamilyProperties(device,QFCount,null);                         //count the families
         int IQFCount = QFCount.get(0);                                                                              //int version for processing
@@ -195,7 +183,7 @@ public class RenderUtil {
         return -1;                                                                                                  //couldn't find graphics family
     }
 
-    public static void VkFindQueueFamilys(VkPhysicalDevice device){
+    private static void VkFindQueueFamilys(VkPhysicalDevice device){
         IntBuffer QFCount = memAllocInt(1);                                                                    //allocate memory for family counter
         vkGetPhysicalDeviceQueueFamilyProperties(device,QFCount,null);                         //count the families
         int IQFCount = QFCount.get(0);                                                                              //int version for processing
@@ -295,7 +283,7 @@ public class RenderUtil {
     }
 
 
-    public static VkQueue VkCreateDeviceQueue(VkDevice device, int queueFamilyIndex){
+    private static VkQueue VkCreateDeviceQueue(VkDevice device, int queueFamilyIndex){
         PointerBuffer pQueue = memAllocPointer(1);
         vkGetDeviceQueue(device,queueFamilyIndex,0,pQueue);              //bind the family to the point
         long queue =pQueue.get(0);
@@ -312,7 +300,7 @@ public class RenderUtil {
         colorSpace = surfFormats.get(0).colorSpace();
     }
 
-    public static void VkCreateSwapChain(int newWidth,int newHeight,boolean reCreate){
+    private static void VkCreateSwapChain(int newWidth,int newHeight,boolean reCreate){
                                                                                                                                      //grab all the data required for swapchain creation
         pSCapabilities = VkSurfaceCapabilitiesKHR.calloc();
         int check = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(chosenDevice,Window.getSurface(),pSCapabilities);
@@ -433,11 +421,29 @@ public class RenderUtil {
                 throw new IllegalStateException("Failed to create Image View");
             }
         }
+
+
+
         imageViewCreateInfo.free();
         memFree(pBufferView);
         memFree(pSwapchainImages);
 
     }
+
+
+    private static VkPipelineShaderStageCreateInfo CreateShader(String path, VkDevice device, int stage  ){
+        VkPipelineShaderStageCreateInfo shader = VkPipelineShaderStageCreateInfo.calloc()
+                .sType(VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO)
+                .stage(stage);
+                //.module()
+                //.pName(memUTF8("main"));
+        return shader;
+    }
+
+    private static void createGraphicsPipeline(){
+
+    }
+
 
 
 
