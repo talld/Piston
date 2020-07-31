@@ -11,6 +11,8 @@ import java.util.ArrayList;
 
 import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
 import static org.lwjgl.system.MemoryUtil.*;
+import static org.lwjgl.util.shaderc.Shaderc.*;
+import  static org.lwjgl.util.shaderc.ShadercSpvc.*;
 import static org.lwjgl.vulkan.EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
 import static org.lwjgl.vulkan.KHRSurface.*;
 import static org.lwjgl.vulkan.KHRSwapchain.*;
@@ -36,6 +38,8 @@ public class RenderUtil {
 
     private static long swapChain;
     private static long[] imageViews;
+
+    private static long compiler;
 
 
     public static void VkInit(){
@@ -431,17 +435,25 @@ public class RenderUtil {
     }
 
 
+    private static long createCompiler(){
+        long options = shaderc_compile_options_initialize();
+        shaderc_compile_options_set_generate_debug_info(options);
+        long compiler = shaderc_compiler_initialize();
+        return compiler;
+    }
+
     private static VkPipelineShaderStageCreateInfo CreateShader(String path, VkDevice device, int stage  ){
+
         VkPipelineShaderStageCreateInfo shader = VkPipelineShaderStageCreateInfo.calloc()
                 .sType(VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO)
-                .stage(stage);
-                //.module()
-                //.pName(memUTF8("main"));
+                .stage(stage)
+                //.module(shaderc_compile_into_sp)
+                .pName(memUTF8("main"));
         return shader;
     }
 
     private static void createGraphicsPipeline(){
-
+        createCompiler();
     }
 
 
@@ -466,5 +478,15 @@ public class RenderUtil {
 
     public static long[] getImageViews() {
         return imageViews;
+    }
+
+
+    private static long getCompiler() {
+
+        if(compiler == 0l){
+           compiler = createCompiler();
+        }
+
+        return compiler;
     }
 }

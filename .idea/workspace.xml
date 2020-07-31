@@ -236,4 +236,23 @@
     <state x="343" y="49" width="672" height="678" key="search.everywhere.popup/0.0.1360.728@0.0.1360.728" timestamp="1591317970027" />
     <state x="345" y="49" width="675" height="678" key="search.everywhere.popup/0.0.1366.728@0.0.1366.728" timestamp="1596110239198" />
   </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/Engine/Renderer/RenderUtil.java</url>
+          <line>485</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/Engine/Renderer/RenderUtil.java</url>
+          <line>483</line>
+          <properties class="Engine.Renderer.RenderUtil" method="getCompiler">
+            <option name="EMULATED" value="true" />
+          </properties>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
 </project>

@@ -33,6 +33,7 @@ public class Boot {
     public void postInit(){
         Window.createWindow(640,480,"title",0,1);
         VkPostInit();
+        return;
     }
 
 
@@ -53,7 +54,7 @@ public class Boot {
         vkDestroySurfaceKHR(RenderUtil.getInstance(),Window.getSurface(),null);
         VK10.vkDestroyDevice(getLogicDevice(), null);
         VK10.vkDestroyInstance(RenderUtil.getInstance(),null);
-
+        return;
     }
 
     public void update() {
