@@ -3,6 +3,10 @@ package Engine.Renderer;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.vulkan.*;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -442,12 +446,31 @@ public class RenderUtil {
         return compiler;
     }
 
-    private static VkPipelineShaderStageCreateInfo CreateShader(String path, VkDevice device, int stage  ){
+    private static ByteBuffer getFileSource(String path){
+        try {
+            InputStream in = new FileInputStream(path);
+            ByteBuffer source = ByteBuffer.allocate(in.available());
+            byte[] byteHold = source.array();
+            in.read(byteHold);
+            source.put(byteHold);
+            in.close();
+            return source;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static VkPipelineShaderStageCreateInfo CreateShader(String path,String name, VkDevice device, int stage  ){
+
+        //shaderc_compile_into_spv(getCompiler(),getFileSource(path),stage,name,name,0l);
 
         VkPipelineShaderStageCreateInfo shader = VkPipelineShaderStageCreateInfo.calloc()
                 .sType(VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO)
                 .stage(stage)
-                //.module(shaderc_compile_into_sp)
+                //.module()
                 .pName(memUTF8("main"));
         return shader;
     }
