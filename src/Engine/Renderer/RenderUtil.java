@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.util.shaderc.Shaderc.*;
+import static org.lwjgl.util.shaderc.Shaderc.shaderc_compile_into_spv;
 import  static org.lwjgl.util.shaderc.ShadercSpvc.*;
 import static org.lwjgl.vulkan.EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
 import static org.lwjgl.vulkan.KHRSurface.*;
@@ -41,12 +42,26 @@ public class RenderUtil {
     private static int colorSpace;
 
     private static long swapChain;
+    private static VkExtent2D extent2D;
     private static long[] imageViews;
 
     private static long compiler;
 
 
     public static void VkInit(){
+        VkInitInstance();
+        VkInitHardware();
+    }
+
+
+    public static void VkPostInit(){
+        VkFindQueueFamilys(chosenDevice);
+        VkCreateGraphicsFamily();
+        VkCreateSwapChain(Window.getHeight(),Window.getWidth(),false);
+        createGraphicsPipeline();
+    }
+
+    private static void VkInitInstance(){
 
         VkApplicationInfo appInfo = VkApplicationInfo.calloc();                  //define app info
         appInfo.sType(VK_STRUCTURE_TYPE_APPLICATION_INFO);                       //auto-generate structure info
@@ -87,8 +102,6 @@ public class RenderUtil {
         memFree(VK_EXT_DEBUG_REPORT_EXTENSION);
         memFree(pRequiredExtensions);
                                                                              //calloc is auto removed from the heap and destroyed after use so no need to clean them up
-
-        VkInitHardware();                                                    //call next step;
     }
 
     public static void VkInitDebug(){
@@ -117,15 +130,8 @@ public class RenderUtil {
 
 
         memFree(pDevices);                                                                         //free pointers
-
     }
 
-    public static void VkPostInit(){
-        VkFindQueueFamilys(chosenDevice);
-        VkCreateGraphicsFamily();
-        VkCreateSwapChain(Window.getHeight(),Window.getWidth(),false);
-        createGraphicsPipeline();
-    }
 
     private static VkPhysicalDevice VkSelectDevice(PointerBuffer pDevices){//
         int highest = 0;
@@ -358,7 +364,7 @@ public class RenderUtil {
             }
         }
 
-        VkExtent2D extent2D = pSCapabilities.currentExtent();
+        extent2D = pSCapabilities.currentExtent();
         int width = extent2D.width();
         int height = extent2D.height();
 
@@ -457,30 +463,40 @@ public class RenderUtil {
             return source;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            return null;
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
+    }
+
+    private static long createShaderModule(String path, int stage, String name, VkDevice device){
+        VkShaderModuleCreateInfo cInfo = VkShaderModuleCreateInfo.calloc();
+        cInfo.sType(VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
+        long code = shaderc_compile_into_spv(compiler,getFileSource(path).toString(),stage,name,"main",0l);
+        cInfo.pCode(shaderc_result_get_bytes(code));
+        LongBuffer pModule = memAllocLong(1);
+        int check = vkCreateShaderModule(device,cInfo,null,pModule);
+        if(check!=VK_SUCCESS){
+            throw new IllegalStateException("Failed to create shader:" + name);
+        }
+        long module = pModule.get();
+        memFree(pModule);
+        return module;
     }
 
     private static VkPipelineShaderStageCreateInfo CreateShader(String path,String name, VkDevice device, int stage  ){
 
-        //shaderc_compile_into_spv(getCompiler(),getFileSource(path),stage,name,name,0l);
-
         VkPipelineShaderStageCreateInfo shader = VkPipelineShaderStageCreateInfo.calloc()
                 .sType(VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO)
                 .stage(stage)
-                //.module()
+                .module(createShaderModule(path,stage,name,device))
                 .pName(memUTF8("main"));
         return shader;
     }
 
     private static void createGraphicsPipeline(){
-        createCompiler();
+        
     }
-
-
-
 
     public static VkInstance getInstance() {
         return Instance;
