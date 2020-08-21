@@ -46,15 +46,7 @@ public class Boot {
     }
 
     public void cleanUp(){
-        Window.dispose();
-        long[] imageViews = RenderUtil.getImageViews();
-        for(int i = 0; i<imageViews.length-1;i++){
-            VK10.vkDestroyImageView(getLogicDevice(),imageViews[i],null);
-        }
-        vkDestroySurfaceKHR(RenderUtil.getInstance(),Window.getSurface(),null);
-        VK10.vkDestroyDevice(getLogicDevice(), null);
-        VK10.vkDestroyInstance(RenderUtil.getInstance(),null);
-        return;
+        vkCleanup();
     }
 
     public void update() {

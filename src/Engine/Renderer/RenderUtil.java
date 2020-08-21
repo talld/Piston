@@ -11,13 +11,13 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.util.shaderc.Shaderc.*;
 import static org.lwjgl.util.shaderc.Shaderc.shaderc_compile_into_spv;
-import  static org.lwjgl.util.shaderc.ShadercSpvc.*;
 import static org.lwjgl.vulkan.EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
 import static org.lwjgl.vulkan.KHRSurface.*;
 import static org.lwjgl.vulkan.KHRSwapchain.*;
@@ -45,8 +45,7 @@ public class RenderUtil {
     private static VkExtent2D extent2D;
     private static long[] imageViews;
 
-    private static long compiler;
-
+    private static long pipelineLayout;
 
     public static void VkInit(){
         VkInitInstance();
@@ -58,7 +57,9 @@ public class RenderUtil {
         VkFindQueueFamilys(chosenDevice);
         VkCreateGraphicsFamily();
         VkCreateSwapChain(Window.getHeight(),Window.getWidth(),false);
+        createCompiler();
         createGraphicsPipeline();
+        createRenderPass();
     }
 
     private static void VkInitInstance(){
@@ -449,18 +450,19 @@ public class RenderUtil {
         long options = shaderc_compile_options_initialize();
         shaderc_compile_options_set_generate_debug_info(options);
         long compiler = shaderc_compiler_initialize();
+        if(compiler == NULL){
+            throw new IllegalStateException("failed to create compiler");
+        }
         return compiler;
     }
 
-    private static ByteBuffer getFileSource(String path){
+    private static String getFileSource(String path){
         try {
             InputStream in = new FileInputStream(path);
-            ByteBuffer source = ByteBuffer.allocate(in.available());
-            byte[] byteHold = source.array();
-            in.read(byteHold);
-            source.put(byteHold);
-            in.close();
-            return source;
+            int size = in.available();
+            byte[] b = new byte[size];
+            in.read(b,0,size);
+            return new String(b, StandardCharsets.UTF_8);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -469,11 +471,12 @@ public class RenderUtil {
         return null;
     }
 
-    private static long createShaderModule(String path, int stage, String name, VkDevice device){
+    private static long createShaderModule(String path,String name,int stage, VkDevice device){
         VkShaderModuleCreateInfo cInfo = VkShaderModuleCreateInfo.calloc();
+        long c = shaderc_compiler_initialize();
         cInfo.sType(VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
-        long code = shaderc_compile_into_spv(compiler,getFileSource(path).toString(),stage,name,"main",0l);
-        cInfo.pCode(shaderc_result_get_bytes(code));
+        long result = shaderc_compile_into_spv(c, getFileSource(path),stage,name,"main",0l);
+        cInfo.pCode(shaderc_result_get_bytes(result));
         LongBuffer pModule = memAllocLong(1);
         int check = vkCreateShaderModule(device,cInfo,null,pModule);
         if(check!=VK_SUCCESS){
@@ -484,18 +487,130 @@ public class RenderUtil {
         return module;
     }
 
-    private static VkPipelineShaderStageCreateInfo CreateShader(String path,String name, VkDevice device, int stage  ){
+    private static VkPipelineShaderStageCreateInfo createShader(String path,String name, int stage, VkDevice device){
 
-        VkPipelineShaderStageCreateInfo shader = VkPipelineShaderStageCreateInfo.calloc()
+        VkPipelineShaderStageCreateInfo cInfo = VkPipelineShaderStageCreateInfo.calloc()
                 .sType(VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO)
                 .stage(stage)
-                .module(createShaderModule(path,stage,name,device))
+                .module(createShaderModule(path,name,stage,device))
                 .pName(memUTF8("main"));
-        return shader;
+        return cInfo;
+    }
+
+    public static void createRenderPass(){
+
     }
 
     private static void createGraphicsPipeline(){
+
+        VkPipelineShaderStageCreateInfo vert = createShader("Assets/Shaders/base.vert","shader",shaderc_glsl_vertex_shader,lDevice);
+        VkPipelineShaderStageCreateInfo frag = createShader("Assets/Shaders/base.frag","shader",shaderc_glsl_fragment_shader,lDevice);
         
+        VkPipelineVertexInputStateCreateInfo vertexInInfo = VkPipelineVertexInputStateCreateInfo.calloc();
+        vertexInInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO);
+        vertexInInfo.pVertexBindingDescriptions(null);
+        vertexInInfo.pVertexAttributeDescriptions(null);
+
+        VkPipelineInputAssemblyStateCreateInfo inputAssembly = VkPipelineInputAssemblyStateCreateInfo.calloc();
+        inputAssembly.sType(VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO);
+        inputAssembly.topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+        inputAssembly.primitiveRestartEnable(false);
+
+        VkViewport.Buffer viewPort = VkViewport.calloc(1);
+        viewPort.x(0.0f);
+        viewPort.y(0.0f);
+        viewPort.height(extent2D.height());
+        viewPort.width(extent2D.width());
+        viewPort.maxDepth(1f);
+        viewPort.minDepth(0f);
+
+        VkRect2D.Buffer scissor = VkRect2D.calloc(1);
+        VkOffset2D offset = VkOffset2D.calloc();
+        offset.y(0);
+        offset.x(0);
+        scissor.offset(offset);
+        scissor.extent(extent2D);
+
+        VkPipelineViewportStateCreateInfo viewportState = VkPipelineViewportStateCreateInfo.calloc();
+        viewportState.sType(VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO);
+        viewportState.viewportCount(1);
+        viewportState.pViewports(viewPort);
+        viewportState.scissorCount (1);
+        viewportState.pScissors(scissor);
+
+        VkPipelineRasterizationStateCreateInfo rasterizer = VkPipelineRasterizationStateCreateInfo.calloc();
+        rasterizer.sType(VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO);
+        rasterizer.depthClampEnable(false);
+        rasterizer.rasterizerDiscardEnable(false);
+        rasterizer.polygonMode(VK_POLYGON_MODE_FILL);
+        rasterizer.lineWidth(1.0f);
+        rasterizer.cullMode(VK_CULL_MODE_BACK_BIT);
+        rasterizer.frontFace(VK_FRONT_FACE_CLOCKWISE);
+        rasterizer.depthBiasEnable(false);
+        rasterizer.depthBiasConstantFactor(0f);
+        rasterizer.depthBiasClamp(0f);
+        rasterizer.depthBiasSlopeFactor(0f);
+
+        VkPipelineMultisampleStateCreateInfo multisampling = VkPipelineMultisampleStateCreateInfo.calloc();
+        multisampling.sType(VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO);
+        multisampling.sampleShadingEnable(false);
+        multisampling.rasterizationSamples(VK_SAMPLE_COUNT_1_BIT);
+        multisampling.minSampleShading(1.0f);
+        multisampling.pSampleMask(null);
+        multisampling.alphaToCoverageEnable(false);
+        multisampling.alphaToOneEnable(false);
+
+        VkPipelineDepthStencilStateCreateInfo depthStencil = null;
+
+        VkPipelineColorBlendAttachmentState.Buffer colorBlendAttachment = VkPipelineColorBlendAttachmentState.calloc(1);
+        colorBlendAttachment.colorWriteMask(VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT);
+        colorBlendAttachment.blendEnable(false);
+        colorBlendAttachment.srcColorBlendFactor(VK_BLEND_FACTOR_ONE);
+        colorBlendAttachment.dstColorBlendFactor(VK_BLEND_FACTOR_ZERO);
+        colorBlendAttachment.colorBlendOp(VK_BLEND_OP_ADD);
+        colorBlendAttachment.srcAlphaBlendFactor(VK_BLEND_FACTOR_ONE);
+        colorBlendAttachment.dstAlphaBlendFactor(VK_BLEND_FACTOR_ZERO);
+        colorBlendAttachment.alphaBlendOp(VK_BLEND_OP_ADD);
+
+        VkPipelineColorBlendStateCreateInfo colorBlending = VkPipelineColorBlendStateCreateInfo.calloc();
+        colorBlending.sType(VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO);
+        colorBlending.logicOpEnable(false);
+        colorBlending.logicOp(VK_LOGIC_OP_COPY);
+        colorBlending.pAttachments(colorBlendAttachment);
+
+        IntBuffer dynamics= memAllocInt(2);
+        dynamics.put(VK_DYNAMIC_STATE_VIEWPORT);
+        dynamics.put(VK_DYNAMIC_STATE_LINE_WIDTH);
+
+        VkPipelineDynamicStateCreateInfo dynamicState = VkPipelineDynamicStateCreateInfo.calloc();
+        dynamicState.sType(VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO);
+        dynamicState.pDynamicStates(dynamics);
+
+        memFree(dynamics);
+
+        VkPipelineLayoutCreateInfo pipelineLayoutCinfo = VkPipelineLayoutCreateInfo.calloc();
+        pipelineLayoutCinfo.sType(VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO);
+        pipelineLayoutCinfo.pSetLayouts(null);
+        pipelineLayoutCinfo.pPushConstantRanges(null);
+
+        LongBuffer pLayout = memAllocLong(1);
+
+        int check = vkCreatePipelineLayout(lDevice, pipelineLayoutCinfo,null,pLayout);
+
+        pipelineLayout = pLayout.get();
+        memFree(pLayout);
+    }
+
+    public static void vkCleanup(){
+        Window.dispose();
+        vkDestroyPipeline(lDevice,pipelineLayout,null);
+        for(int i = 0; i<imageViews.length-1;i++){
+            VK10.vkDestroyImageView(lDevice,imageViews[i],null);
+        }
+        vkDestroySurfaceKHR(Instance,Window.getSurface(),null);
+        VK10.vkDestroyDevice(lDevice, null);
+        VK10.vkDestroyInstance(Instance,null);
+        return;
     }
 
     public static VkInstance getInstance() {
@@ -520,12 +635,5 @@ public class RenderUtil {
     }
 
 
-    private static long getCompiler() {
 
-        if(compiler == 0l){
-           compiler = createCompiler();
-        }
-
-        return compiler;
-    }
 }
