@@ -16,7 +16,6 @@ public class Boot {
 
     public Boot(){
         init();
-        postInit();
         gameLoop();
         cleanUp();
     }
@@ -30,11 +29,6 @@ public class Boot {
         return;
     }
 
-    public void postInit(){
-        Window.createWindow(640,480,"title",0,1);
-        VkPostInit();
-        return;
-    }
 
 
     public void gameLoop() {
