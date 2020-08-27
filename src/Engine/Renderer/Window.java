@@ -24,51 +24,73 @@ import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
 
 public class Window {
 
-    private static long context;
-    private static long surface;
-    private static int windowWidth;
-    private static int windowHeight;
+    private long window;
+    private long surface;
+    private int windowWidth;
+    private int windowHeight;
+    private String title;
 
 
     public Window(int width, int height, String title){
-
+        this.windowWidth = width;
+        this.windowHeight = height;
+        this.title = title;
     }
 
-    public static boolean isCloseRequested(){
-        return glfwWindowShouldClose(context);
+    public void create(){
+        glfwWindowHint(GLFW_CLIENT_API,GLFW_NO_API);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+        window = glfwCreateWindow(windowWidth,windowHeight,title,NULL,NULL);
     }
 
-    public static void destroy(){
-
-        glfwDestroyWindow(context);
-        glfwTerminate();
+    public void createSurface(){
+        try(MemoryStack stack = stackPush()){
+            LongBuffer pSurface = stack.longs(0);
+            if(glfwCreateWindowSurface(VRenderer.getInstance(),window,null,pSurface)!=VK_SUCCESS){
+                throw new RuntimeException("Failed to create window surface");
+            }
+            surface = pSurface.get();
+        }
     }
 
-    public static long getContext(){
-        return context;
+    public void update(){
+        glfwPollEvents();
     }
 
-    public static void setTitle(String title){
-        GLFW.glfwSetWindowTitle(context,title);
+    public boolean isCloseRequested(){
+        return glfwWindowShouldClose(window);
     }
 
-    public static int getWidth(){
+    public void destroy(){
+        glfwDestroyWindow(window);
+    }
+
+    public long getWindow(){
+        return window;
+    }
+
+    public void setTitle(String title){
+        GLFW.glfwSetWindowTitle(window,title);
+    }
+
+    public int getWidth(){
         return windowWidth;
     }
 
-    public static int getHeight(){
+    public int getHeight(){
         return windowHeight;
     }
 
-    public static void setHeight(int height){
+    public void setHeight(int height){
         windowHeight = height;
     }
 
-    public static void setWidth(int width){
+    public void setWidth(int width){
         windowWidth = width;
     }
 
-    public static long getSurface() {
+    public long getSurface() {
         return surface;
     }
 }

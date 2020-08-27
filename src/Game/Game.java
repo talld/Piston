@@ -19,9 +19,7 @@ public class Game {
     }
 
     public void update(){
-        if(Input.checkKeyReleased(GLFW_KEY_E)){
-            System.out.println("e released");
-        }
+
     }
 
     public void render(){
