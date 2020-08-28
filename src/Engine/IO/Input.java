@@ -15,7 +15,7 @@ public class Input {
     private static Set<Integer> releasedKeys = new HashSet<>();
 
     public static void init(){
-        glfwSetKeyCallback(Piston.getWindow(), (window, key, scancode, action, mods) -> {
+        glfwSetKeyCallback(Piston.getWindowPointer(), (window, key, scancode, action, mods) -> {
             pressedKeys.add(key);
         });
     }

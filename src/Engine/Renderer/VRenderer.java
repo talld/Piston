@@ -1,16 +1,10 @@
 package Engine.Renderer;
 
-import Engine.Renderer.RenderUtil;
+import Engine.Piston;
 import org.lwjgl.vulkan.*;
 
-import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.vulkan.EXTDebugUtils.vkCreateDebugUtilsMessengerEXT;
-import static org.lwjgl.vulkan.EXTDebugUtils.vkDestroyDebugUtilsMessengerEXT;
 import static org.lwjgl.vulkan.VK10.*;
-
-import java.nio.LongBuffer;
-import java.util.HashSet;
-import java.util.Set;
 
 public class VRenderer {
 
@@ -30,11 +24,14 @@ public class VRenderer {
     public static void init(){
         instance = vInstance.create(VValidationLayers.getPointerBuffer());
         VValidationLayers.setupDebugMessenger();
-        device = RenderUtil.selectDevice();
+        Piston.getWindow().createSurface();
+        device = EngineUtilities.selectDevice();
         lDevice = vLogicalDevice.create(device);
     }
 
     public static void cleanUp(){
+
+        vkDestroyDevice(lDevice,null);
 
         if(VValidationLayers.ENABLE_VALIDATION_LAYERS) {
             VValidationLayers.destroyDebugUtilsMessengerEXT(instance, null);

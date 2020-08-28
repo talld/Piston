@@ -1,17 +1,12 @@
 package Engine;
 
 import Engine.IO.Input;
-import Engine.Renderer.RenderUtil;
 import Engine.Renderer.VRenderer;
-import Engine.Renderer.VValidationLayers;
 import Engine.Renderer.Window;
 import Game.Game;
-import org.lwjgl.vulkan.VK10;
 
-import static Engine.Renderer.RenderUtil.*;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
-import static org.lwjgl.vulkan.KHRSurface.vkDestroySurfaceKHR;
 
 public class Piston {
 

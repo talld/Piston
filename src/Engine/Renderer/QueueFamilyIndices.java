@@ -1,4 +1,4 @@
-package Engine.Renderer.Objects;
+package Engine.Renderer;
 
 import java.util.HashSet;
 import java.util.Set;

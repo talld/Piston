@@ -85,8 +85,8 @@ Java frames: (J=compiled Java code, j=interpreted, Vv=VM code)
 j  org.lwjgl.system.JNI.callPPV(JJIJ)V+0
 j  org.lwjgl.vulkan.VK10.nvkCmdBeginRenderPass(Lorg/lwjgl/vulkan/VkCommandBuffer;JI)V+27
 j  org.lwjgl.vulkan.VK10.vkCmdBeginRenderPass(Lorg/lwjgl/vulkan/VkCommandBuffer;Lorg/lwjgl/vulkan/VkRenderPassBeginInfo;I)V+6
-j  Engine.Renderer.RenderUtil.createCommandBuffer()V+328
-j  Engine.Renderer.RenderUtil.VkInit()V+54
+j  Engine.Renderer.EngineUtilities.createCommandBuffer()V+328
+j  Engine.Renderer.EngineUtilities.VkInit()V+54
 j  Engine.Boot.init()V+3
 j  Engine.Boot.<init>()V+21
 j  Engine.Boot.main([Ljava/lang/String;)V+4
