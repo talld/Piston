@@ -1,7 +1,7 @@
 package Engine.IO;
 
 import Engine.Piston;
-import Engine.Renderer.VRenderer;
+import Engine.Renderer.Renderer;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -17,7 +17,7 @@ public class Input {
     private static Set<Integer> releasedKeys = new HashSet<>();
 
     public static void init(){
-        glfwSetKeyCallback(VRenderer.getWindow().getPointer(), (window, key, scancode, action, mods) -> {
+        glfwSetKeyCallback(Renderer.getWindow().getPointer(), (window, key, scancode, action, mods) -> {
             pressedKeys.add(key);
         });
     }

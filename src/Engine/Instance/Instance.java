@@ -1,37 +1,31 @@
-package Engine.Renderer;
+package Engine.Instance;
 
+import Engine.ValidationLayers.ValidationLayers;
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.Version;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkApplicationInfo;
 import org.lwjgl.vulkan.VkDebugUtilsMessengerCreateInfoEXT;
 import org.lwjgl.vulkan.VkInstance;
 import org.lwjgl.vulkan.VkInstanceCreateInfo;
 
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
-import java.util.HashSet;
-import java.util.Set;
-
-import static Engine.Renderer.VValidationLayers.populateDebugMessengerCreateInfo;
+import static Engine.ValidationLayers.ValidationLayers.populateDebugMessengerCreateInfo;
 import static org.lwjgl.glfw.GLFWVulkan.glfwGetRequiredInstanceExtensions;
 import static org.lwjgl.system.MemoryStack.stackGet;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.EXTDebugUtils.*;
 import static org.lwjgl.vulkan.VK10.*;
 
-public class VInstance {
+public class Instance {
 
     VkInstance instance;
 
-    public VInstance(){
+    public Instance(){
 
     }
 
     public VkInstance create(PointerBuffer valdiationLayers) {
 
-        if(VValidationLayers.ENABLE_VALIDATION_LAYERS && !VValidationLayers.checkValidationLayerSupport()) {
+        if(ValidationLayers.ENABLE_VALIDATION_LAYERS && !ValidationLayers.checkValidationLayerSupport()) {
             throw new RuntimeException("Validation requested but not supported");
         }
 

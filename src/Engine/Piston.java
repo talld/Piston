@@ -1,7 +1,7 @@
 package Engine;
 
 import Engine.IO.Input;
-import Engine.Renderer.VRenderer;
+import Engine.Renderer.Renderer;
 import Game.Game;
 
 public class Piston {
@@ -17,14 +17,14 @@ public class Piston {
     }
 
     public void init() {
-        VRenderer renderer = new VRenderer();
-        VRenderer.init();
+        Renderer renderer = new Renderer();
+        Renderer.init();
     }
 
 
 
     public void gameLoop() {
-        while(VRenderer.running()){
+        while(Renderer.running()){
             update();
             render();
         }
@@ -32,12 +32,12 @@ public class Piston {
 
     public void cleanUp()
     {
-        VRenderer.cleanUp();
+        Renderer.cleanUp();
     }
 
     public void update() {
         Input.update();
-        VRenderer.update();
+        Renderer.update();
         game.update();
     }
 

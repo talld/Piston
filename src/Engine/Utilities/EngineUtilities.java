@@ -1,6 +1,7 @@
-package Engine.Renderer;
+package Engine.Utilities;
 
-import Engine.Piston;
+import Engine.PhysicalDevice.QueueFamilyIndices;
+import Engine.Renderer.Renderer;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
@@ -13,7 +14,6 @@ import java.nio.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
-import static org.lwjgl.system.MemoryStack.stackGet;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.util.shaderc.Shaderc.*;
@@ -71,13 +71,13 @@ public class EngineUtilities {
     public static VkPhysicalDevice selectDevice(long surface) {
         try(MemoryStack stack = stackPush()) {
             IntBuffer deviceCount = stack.ints(0);
-            vkEnumeratePhysicalDevices(VRenderer.getInstance(),deviceCount,null);
+            VK10.vkEnumeratePhysicalDevices(Renderer.getVkInstance(),deviceCount,null);
             PointerBuffer deivces = stack.mallocPointer(deviceCount.get(0));
-            vkEnumeratePhysicalDevices(VRenderer.getInstance(),deviceCount,deivces);
+            vkEnumeratePhysicalDevices(Renderer.getVkInstance(),deviceCount,deivces);
             int highestScore = -1;
             VkPhysicalDevice highestDevice = null;
             for(int i = 0; i<deivces.capacity(); i++){
-                VkPhysicalDevice device = new VkPhysicalDevice(deivces.get(i), VRenderer.getInstance());
+                VkPhysicalDevice device = new VkPhysicalDevice(deivces.get(i), Renderer.getVkInstance());
                 int score = rateDevice(device, surface);
                 if(highestScore<score){
                     highestScore = score;

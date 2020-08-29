@@ -1,5 +1,6 @@
-package Engine.Renderer;
+package Engine.ValidationLayers;
 
+import Engine.Renderer.Renderer;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
@@ -17,7 +18,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.vulkan.EXTDebugUtils.*;
 import static org.lwjgl.vulkan.VK10.*;
 
-public class VValidationLayers {
+public class ValidationLayers {
 
     private static long debugMessenger;
 
@@ -69,7 +70,7 @@ public class VValidationLayers {
 
             LongBuffer pDebugMessenger = stack.longs(VK_NULL_HANDLE);
 
-            if(createDebugUtilsMessengerEXT(VRenderer.getInstance(), createInfo, null, pDebugMessenger) != VK_SUCCESS) {
+            if(createDebugUtilsMessengerEXT(Renderer.getVkInstance(), createInfo, null, pDebugMessenger) != VK_SUCCESS) {
                 throw new RuntimeException("Failed to set up debug messenger");
             }
 
@@ -77,11 +78,11 @@ public class VValidationLayers {
         }
     }
 
-    static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo) {
+    public static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo) {
         debugCreateInfo.sType(VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT);
         debugCreateInfo.messageSeverity(VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT);
         debugCreateInfo.messageType(VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT);
-        debugCreateInfo.pfnUserCallback(VValidationLayers::debugCallback);
+        debugCreateInfo.pfnUserCallback(ValidationLayers::debugCallback);
     }
 
     private static int createDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerCreateInfoEXT createInfo,
@@ -102,7 +103,7 @@ public class VValidationLayers {
 
     }
 
-    static boolean checkValidationLayerSupport() {
+    public static boolean checkValidationLayerSupport() {
 
         try(MemoryStack stack = stackPush()) {
 

@@ -1,26 +1,24 @@
-package Engine.Renderer;
+package Engine.LogicalDevice;
 
+import Engine.PhysicalDevice.QueueFamilyIndices;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 
 
 import java.nio.FloatBuffer;
-import java.util.HashSet;
-import java.util.Set;
 
 
-import static Engine.Renderer.EngineUtilities.getDeviceRequiredExtensionsPointer;
-import static Engine.Renderer.EngineUtilities.getQueueFamilies;
+import static Engine.Utilities.EngineUtilities.getDeviceRequiredExtensionsPointer;
+import static Engine.Utilities.EngineUtilities.getQueueFamilies;
 import static org.lwjgl.system.MemoryStack.stackPush;
-import static org.lwjgl.vulkan.KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 import static org.lwjgl.vulkan.VK10.*;
 
-public class VLogicalDevice {
+public class LogicalDevice {
 
     private VkDevice lDevice;
 
-    public VLogicalDevice(){
+    public LogicalDevice(){
 
     }
 

@@ -1,4 +1,4 @@
-package Engine.Renderer;
+package Engine.Window;
 
 import Engine.Piston;
 import org.lwjgl.*;

@@ -85,10 +85,10 @@ Java frames: (J=compiled Java code, j=interpreted, Vv=VM code)
 j  org.lwjgl.system.JNI.callPJPI(JIJJJ)I+0
 j  org.lwjgl.vulkan.KHRSurface.nvkGetPhysicalDeviceSurfaceSupportKHR(Lorg/lwjgl/vulkan/VkPhysicalDevice;IJJ)I+31
 j  org.lwjgl.vulkan.KHRSurface.vkGetPhysicalDeviceSurfaceSupportKHR(Lorg/lwjgl/vulkan/VkPhysicalDevice;IJLjava/nio/IntBuffer;)I+20
-j  Engine.Renderer.EngineUtilities.getQueueFamilies(Lorg/lwjgl/vulkan/VkPhysicalDevice;)LEngine/Renderer/QueueFamilyIndices;+119
-j  Engine.Renderer.EngineUtilities.checkDeviceCompatible(Lorg/lwjgl/vulkan/VkPhysicalDevice;)Z+1
-j  Engine.Renderer.EngineUtilities.rateDevice(Lorg/lwjgl/vulkan/VkPhysicalDevice;)I+7
-j  Engine.Renderer.EngineUtilities.selectDevice()Lorg/lwjgl/vulkan/VkPhysicalDevice;+78
+j  Engine.Utilities.EngineUtilities.getQueueFamilies(Lorg/lwjgl/vulkan/VkPhysicalDevice;)LEngine/Renderer/QueueFamilyIndices;+119
+j  Engine.Utilities.EngineUtilities.checkDeviceCompatible(Lorg/lwjgl/vulkan/VkPhysicalDevice;)Z+1
+j  Engine.Utilities.EngineUtilities.rateDevice(Lorg/lwjgl/vulkan/VkPhysicalDevice;)I+7
+j  Engine.Utilities.EngineUtilities.selectDevice()Lorg/lwjgl/vulkan/VkPhysicalDevice;+78
 j  Engine.Renderer.VRenderer.init()V+15
 j  Engine.Piston.init()V+36
 j  Engine.Piston.<init>()V+21
