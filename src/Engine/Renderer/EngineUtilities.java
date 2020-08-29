@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
 import static org.lwjgl.system.MemoryStack.stackGet;
 import static org.lwjgl.system.MemoryStack.stackPush;
@@ -23,7 +24,8 @@ import static org.lwjgl.vulkan.VK10.*;
 
 public class EngineUtilities {
 
-    private  static PointerBuffer extensions = null;
+    private static PointerBuffer extensionsPointer = null;
+    private  static ArrayList<String> extensions = null;
 
     private static long createCompiler() {
         long options = shaderc_compile_options_initialize();
@@ -66,7 +68,7 @@ public class EngineUtilities {
         return module;
     }
 
-    public static VkPhysicalDevice selectDevice() {
+    public static VkPhysicalDevice selectDevice(long surface) {
         try(MemoryStack stack = stackPush()) {
             IntBuffer deviceCount = stack.ints(0);
             vkEnumeratePhysicalDevices(VRenderer.getInstance(),deviceCount,null);
@@ -76,7 +78,7 @@ public class EngineUtilities {
             VkPhysicalDevice highestDevice = null;
             for(int i = 0; i<deivces.capacity(); i++){
                 VkPhysicalDevice device = new VkPhysicalDevice(deivces.get(i), VRenderer.getInstance());
-                int score = rateDevice(device);
+                int score = rateDevice(device, surface);
                 if(highestScore<score){
                     highestScore = score;
                     highestDevice = device;
@@ -89,11 +91,11 @@ public class EngineUtilities {
         }
     }
 
-    private static int rateDevice(VkPhysicalDevice device){
+    private static int rateDevice(VkPhysicalDevice device, long surface){
 
         try(MemoryStack stack = stackPush()) {
 
-            if (!checkDeviceCompatible(device)) {
+            if (!checkDeviceCompatible(device, surface)) {
                 return -1;
             }
 
@@ -104,11 +106,32 @@ public class EngineUtilities {
         }
     }
 
-    private static boolean checkDeviceCompatible(VkPhysicalDevice device){
-            return (getQueueFamilies(device).validate());
+    private static boolean checkDeviceCompatible(VkPhysicalDevice device, long surface){
+        if(checkDeviceExtensionsSupported(device)) {
+            return (getQueueFamilies(device, surface).validate());
+        }
+        return false;
     }
 
-    public static QueueFamilyIndices getQueueFamilies(VkPhysicalDevice device){
+    private static boolean checkDeviceExtensionsSupported(VkPhysicalDevice device){
+        try(MemoryStack stack = stackPush()) {
+            IntBuffer pExtensionCount = stack.ints(-1);
+            vkEnumerateDeviceExtensionProperties(device, (ByteBuffer) null,pExtensionCount,null );
+            VkExtensionProperties.Buffer availableExtensions = VkExtensionProperties.callocStack(pExtensionCount.get(0),stack);
+            vkEnumerateDeviceExtensionProperties(device, (ByteBuffer) null,pExtensionCount,availableExtensions);
+
+            ArrayList<String> requiredExtensions = getExtensions();
+            for(int i = 0; i<availableExtensions.capacity(); i++){
+                requiredExtensions.remove(availableExtensions.extensionNameString());
+                if(requiredExtensions.isEmpty()){
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    public static QueueFamilyIndices getQueueFamilies(VkPhysicalDevice device, long surface){
 
         try(MemoryStack stack = stackPush()) {
 
@@ -132,7 +155,7 @@ public class EngineUtilities {
                     graphicsQueueFound = true;
                 }
                 IntBuffer pSupported = stack.ints(VK_FALSE);
-                vkGetPhysicalDeviceSurfaceSupportKHR(device, i, Piston.getWindow().getSurface(), pSupported);
+                vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, pSupported);
 
                 if ((pSupported.get(0) == VK_SUCCESS) && !presentationQueueFound) {
                     queueFamilyIndices.presentationFamilyIndex = i;
@@ -152,17 +175,26 @@ public class EngineUtilities {
         }
     }
 
-    public static PointerBuffer getDeviceRequiredExtensions(){
+    public static ArrayList<String> getExtensions(){
+        if(extensions==null){
+            extensions = new ArrayList<String>();
+            extensions.add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        }
+        return extensions;
+    }
+
+    public static PointerBuffer getDeviceRequiredExtensionsPointer(){
         try(MemoryStack stack = stackPush()){
-            if(extensions==null) {
-               extensions = memAllocPointer(1);
+            if(extensionsPointer==null) {
+               extensionsPointer = memAllocPointer(1);
 
-                ByteBuffer VK_KHR_SWAPCHAIN_EXTENSION = memUTF8(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-                extensions.put(VK_KHR_SWAPCHAIN_EXTENSION);
-
-                extensions.flip();
+               for(String extensionName : getExtensions()) {
+                   ByteBuffer extension = memUTF8(extensionName);
+                   extensionsPointer.put(extension);
+               }
+                extensionsPointer.flip();
             }
-            return extensions;
+            return extensionsPointer;
         }
     }
 }

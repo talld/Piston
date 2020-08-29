@@ -64,7 +64,9 @@ public class VInstance {
                 throw new RuntimeException("Failed to create instance");
             }
 
-            return  new VkInstance(instancePtr.get(0), instanceCreateInfo);
+            instance = new VkInstance(instancePtr.get(0), instanceCreateInfo);
+
+            return  instance;
         }
     }
 
@@ -84,5 +86,9 @@ public class VInstance {
             return extensions.rewind();
         }
         return glfwExtensions;
+    }
+
+    public void destroy(){
+        vkDestroyInstance(instance,null);
     }
 }

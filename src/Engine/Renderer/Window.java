@@ -1,5 +1,6 @@
 package Engine.Renderer;
 
+import Engine.Piston;
 import org.lwjgl.*;
 import org.lwjgl.glfw.*;
 import org.lwjgl.glfw.GLFWVulkan.*;
@@ -20,6 +21,7 @@ import static org.lwjgl.system.MemoryUtil.*;
 
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.vulkan.KHRSurface.vkDestroySurfaceKHR;
 import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
 
 public class Window {
@@ -45,15 +47,17 @@ public class Window {
 
     }
 
-    public void createSurface(){
+    public long createSurface(VkInstance instance){
         try(MemoryStack stack = stackPush()){
             LongBuffer pSurface = stack.longs(0);
-            if(glfwCreateWindowSurface(VRenderer.getInstance(),window,null,pSurface)!=VK_SUCCESS){
+            if(glfwCreateWindowSurface(instance,window,null,pSurface)!=VK_SUCCESS){
                 throw new RuntimeException("Failed to create window surface");
             }
             surface = pSurface.get();
+            return surface;
         }
     }
+
 
     public void update(){
         glfwPollEvents();
@@ -67,7 +71,11 @@ public class Window {
         glfwDestroyWindow(window);
     }
 
-    public long getWindow(){
+    public void destroySurface(VkInstance instance){
+        vkDestroySurfaceKHR(instance,surface,null);
+    }
+
+    public long getPointer(){
         return window;
     }
 
