@@ -1,6 +1,6 @@
 package Engine;
 
-import Engine.IO.Input;
+import Engine.Renderer.IO.Input;
 import Engine.Renderer.Renderer;
 import Game.Game;
 

@@ -1,10 +1,11 @@
 package Engine.Renderer;
 
-import Engine.Instance.Instance;
-import Engine.LogicalDevice.LogicalDevice;
-import Engine.Utilities.EngineUtilities;
-import Engine.ValidationLayers.ValidationLayers;
-import Engine.Window.Window;
+import Engine.Renderer.Instance.Instance;
+import Engine.Renderer.LogicalDevice.LogicalDevice;
+import Engine.Renderer.PhysicalDevice.PhysicalDevice;
+import Engine.Renderer.Utilities.EngineUtilities;
+import Engine.Renderer.ValidationLayers.ValidationLayers;
+import Engine.Renderer.Window.Window;
 import org.lwjgl.vulkan.*;
 
 import static org.lwjgl.glfw.GLFW.glfwInit;
@@ -20,13 +21,14 @@ public class Renderer {
     private static long pInstance;
     private static VkInstance vkInstance;
 
-    private static VkPhysicalDevice device;
+    private static PhysicalDevice device;
     private static LogicalDevice logicalDevice;
     private static VkDevice lDevice;
 
     public Renderer() {
         instance = new Instance();
         logicalDevice = new LogicalDevice();
+        device = new PhysicalDevice();
     }
 
     public static void init(){
@@ -36,7 +38,7 @@ public class Renderer {
         vkInstance = instance.create(ValidationLayers.getPointerBuffer());
         surface = window.createSurface(vkInstance);
         ValidationLayers.setupDebugMessenger();
-        device = EngineUtilities.selectDevice(surface);
+        device.selectDevice(surface);
         lDevice = logicalDevice.create(device,surface);
     }
 
