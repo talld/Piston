@@ -37,7 +37,7 @@ public class ValidationLayers {
 
 
 
-    public static PointerBuffer getPointerBuffer(){
+    public static PointerBuffer getPointerBuffer(){     //return pointerBuffer to validation layers
 
         MemoryStack stack = stackGet();
 
@@ -116,8 +116,8 @@ public class ValidationLayers {
             vkEnumerateInstanceLayerProperties(layerCount, availableLayers);
 
             Set<String> availableLayerNames = availableLayers.stream()
-                    .map(VkLayerProperties::layerNameString)
-                    .collect(toSet());
+                    .map(VkLayerProperties::layerNameString) //for every layer name in availableLayers
+                    .collect(toSet());                       //add it to the set
 
             return availableLayerNames.containsAll(VALIDATION_LAYERS);
         }

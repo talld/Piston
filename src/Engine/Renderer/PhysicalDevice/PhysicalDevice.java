@@ -1,6 +1,7 @@
 package Engine.Renderer.PhysicalDevice;
 
 import Engine.Renderer.Renderer;
+import Engine.Renderer.Swapchain.SwapchainSupportDetails;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
@@ -26,7 +27,7 @@ public class PhysicalDevice {
     public PhysicalDevice(){
     }
 
-    public void selectDevice(long surface) {
+    public VkPhysicalDevice selectDevice(long surface) {
         try(MemoryStack stack = stackPush()) {
             IntBuffer deviceCount = stack.ints(0);
             vkEnumeratePhysicalDevices(Renderer.getVkInstance(),deviceCount,null);
@@ -46,6 +47,7 @@ public class PhysicalDevice {
                 throw new RuntimeException("Failed to find compatible device");
             }
             device = highestDevice;
+            return device;
         }
     }
 
@@ -66,7 +68,13 @@ public class PhysicalDevice {
 
     private boolean checkDeviceCompatible(VkPhysicalDevice testedDevice, long surface){
         if(checkDeviceExtensionsSupported(testedDevice)) {
-            return (getQueueFamilies(testedDevice, surface).validate());
+
+            //as swapchainSupportDetails is just some device enumerate and some queries its not too expensive to create a few here
+            SwapchainSupportDetails tempSwapchainSupportDetails = new SwapchainSupportDetails(testedDevice, surface);
+
+            //does the device have the queues we need and swapchain support
+            return (getQueueFamilies(testedDevice, surface).validate()) && tempSwapchainSupportDetails.isValid();
+
         }
         return false;
     }
