@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 
+import static org.lwjgl.system.Configuration.DEBUG;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.memAllocPointer;
 import static org.lwjgl.system.MemoryUtil.memUTF8;
@@ -23,6 +24,8 @@ public class PhysicalDevice {
     private PointerBuffer extensionsPointer = null;
     private ArrayList<String> extensions = null;
     private VkPhysicalDevice device;
+
+    private QueueFamilyIndices indices;
 
     public PhysicalDevice(){
     }
@@ -41,6 +44,7 @@ public class PhysicalDevice {
                 if(highestScore<score){
                     highestScore = score;
                     highestDevice = testedDevice;
+                    this.indices = findQueueFamilies(highestDevice, surface);
                 }
             }
             if(highestScore == -1){
@@ -73,7 +77,7 @@ public class PhysicalDevice {
             SwapchainSupportDetails tempSwapchainSupportDetails = new SwapchainSupportDetails(testedDevice, surface);
 
             //does the device have the queues we need and swapchain support
-            return (getQueueFamilies(testedDevice, surface).validate()) && tempSwapchainSupportDetails.isValid();
+            return (findQueueFamilies(testedDevice, surface).validate() && tempSwapchainSupportDetails.isValid());
 
         }
         return false;
@@ -89,16 +93,24 @@ public class PhysicalDevice {
 
             ArrayList<String> requiredExtensions = getExtensions();
             for(int i = 0; i<availableExtensions.capacity(); i++){
-                requiredExtensions.remove(availableExtensions.extensionNameString());
+                requiredExtensions.remove(availableExtensions.get(i).extensionNameString());
                 if(requiredExtensions.isEmpty()){
                     return true;
                 }
+            }
+            for(int i = 0; i<requiredExtensions.size(); i++) {
+              if(DEBUG.get(true)){
+                  VkPhysicalDeviceProperties properties = VkPhysicalDeviceProperties.callocStack(stack);
+                  vkGetPhysicalDeviceProperties(testedDevice,properties);
+                  System.out.println("Device " + properties.deviceNameString() + properties.deviceID() + " Failed check");
+                  System.out.println("Failed to find extension: " + requiredExtensions.get(i));
+              }
             }
             return false;
         }
     }
 
-    public QueueFamilyIndices getQueueFamilies(VkPhysicalDevice device, long surface){
+    public QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, long surface){
 
         try(MemoryStack stack = stackPush()) {
 
@@ -158,6 +170,7 @@ public class PhysicalDevice {
                 for(String extensionName : getExtensions()) {
                     ByteBuffer extension = memUTF8(extensionName);
                     extensionsPointer.put(extension);
+
                 }
                 extensionsPointer.flip();
             }
@@ -167,5 +180,9 @@ public class PhysicalDevice {
 
     public VkPhysicalDevice getDevice() {
         return device;
+    }
+
+    public QueueFamilyIndices getQueueFamilyIndices(){
+        return indices;
     }
 }

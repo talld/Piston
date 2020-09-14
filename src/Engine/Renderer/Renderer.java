@@ -49,7 +49,7 @@ public class Renderer {
             ValidationLayers.setupDebugMessenger();
             pDevice = physicalDevice.selectDevice(surface);
             lDevice = logicalDevice.create(physicalDevice, surface);
-            swapchain.create(pDevice,window);
+            swapchain.create(physicalDevice,lDevice,window);
         }
     }
 

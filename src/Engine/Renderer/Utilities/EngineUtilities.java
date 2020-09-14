@@ -1,5 +1,7 @@
 package Engine.Renderer.Utilities;
 
+import org.lwjgl.PointerBuffer;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 
 import java.io.FileInputStream;
@@ -8,7 +10,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 
+import static org.lwjgl.system.MemoryStack.stackGet;
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.util.shaderc.Shaderc.*;
 import static org.lwjgl.util.shaderc.Shaderc.shaderc_compile_into_spv;
@@ -41,7 +45,7 @@ public class EngineUtilities {
         return null;
     }
 
-    private static long createShaderModule(String path, String name, int stage, VkDevice device) {
+    public static long createShaderModule(String path, String name, int stage, VkDevice device) {
         VkShaderModuleCreateInfo cInfo = VkShaderModuleCreateInfo.calloc();
         long c = createCompiler();
         cInfo.sType(VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
@@ -55,6 +59,20 @@ public class EngineUtilities {
         long module = pModule.get();
         memFree(pModule);
         return module;
+    }
+
+
+    public static PointerBuffer asPointerBuffer(Collection<String> collection) {
+
+        MemoryStack stack = stackGet();
+
+        PointerBuffer buffer = stack.mallocPointer(collection.size());
+
+        collection.stream()
+                .map(stack::UTF8)
+                .forEach(buffer::put);
+
+        return buffer.rewind();
     }
 
 

@@ -2,12 +2,15 @@ package Engine.Renderer.LogicalDevice;
 
 import Engine.Renderer.PhysicalDevice.PhysicalDevice;
 import Engine.Renderer.PhysicalDevice.QueueFamilyIndices;
+import Engine.Renderer.ValidationLayers.ValidationLayers;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.Pointer;
 import org.lwjgl.vulkan.*;
 
 
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
 
 
 import static org.lwjgl.system.MemoryStack.stackPush;
@@ -17,6 +20,10 @@ public class LogicalDevice {
 
     private VkDevice lDevice;
 
+    public VkQueue graphicsQueue;
+
+    public VkQueue presentQueue;
+
     public LogicalDevice(){
 
     }
@@ -24,7 +31,7 @@ public class LogicalDevice {
     public VkDevice create(PhysicalDevice device, long surface){
         try(MemoryStack stack = stackPush()){
 
-            QueueFamilyIndices queueFamilyIndices = device.getQueueFamilies(device.getDevice(), surface);
+            QueueFamilyIndices queueFamilyIndices = device.findQueueFamilies(device.getDevice(), surface);
 
             Object[] uniqueIndices = queueFamilyIndices.uniqueIndices().toArray();
 
@@ -40,19 +47,28 @@ public class LogicalDevice {
 
             VkPhysicalDeviceFeatures physicalDeviceFeatures = VkPhysicalDeviceFeatures.callocStack(stack);
 
-
             VkDeviceCreateInfo deviceCreateInfo = VkDeviceCreateInfo.callocStack(stack)
                     .sType(VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO)
                     .pQueueCreateInfos(deviceQueueCreateInfo)
                     .pEnabledFeatures(physicalDeviceFeatures)
-                    .ppEnabledExtensionNames(device.getDeviceRequiredExtensionsPointer());
+                    .ppEnabledExtensionNames(device.getDeviceRequiredExtensionsPointer())
+                    .ppEnabledLayerNames(ValidationLayers.getPointerBuffer());
             PointerBuffer pDevice = stack.pointers(VK_NULL_HANDLE);
 
             if(vkCreateDevice(device.getDevice(),deviceCreateInfo,null,pDevice)!=VK_SUCCESS){
                 throw new RuntimeException("Failed to create logical device");
             }
 
-            lDevice = new VkDevice(pDevice.get(),device.getDevice(),deviceCreateInfo);
+            lDevice = new VkDevice(pDevice.get(0),device.getDevice(),deviceCreateInfo);
+
+
+            PointerBuffer pQueue = stack.pointers(VK_NULL_HANDLE);
+
+            vkGetDeviceQueue(lDevice,device.getQueueFamilyIndices().graphicsFamilyIndex, 0, pQueue);
+            graphicsQueue = new VkQueue(pQueue.get(0), lDevice);
+
+            vkGetDeviceQueue(lDevice, device.getQueueFamilyIndices().presentationFamilyIndex, 0, pQueue);
+            presentQueue = new VkQueue(pQueue.get(0), lDevice);
 
             return lDevice;
         }

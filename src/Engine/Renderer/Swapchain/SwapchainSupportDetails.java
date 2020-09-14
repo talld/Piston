@@ -14,24 +14,31 @@ import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.KHRSurface.*;
 import static org.lwjgl.vulkan.KHRSurface.vkGetPhysicalDeviceSurfacePresentModesKHR;
 import static org.lwjgl.vulkan.VK10.VK_FORMAT_B8G8R8A8_SRGB;
+import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
 
 public class SwapchainSupportDetails {
 
 
 
-    private VkSurfaceFormatKHR format;
-    private int presentMode;
-    public int colorSpace;
-
+    public VkSurfaceFormatKHR format;
+    public int presentMode;
     public VkExtent2D swapchainExtent;
+    public VkSurfaceCapabilitiesKHR capabilities;
 
     public SwapchainSupportDetails(VkPhysicalDevice device, long surface) {
 
         this.format = null;
         this.presentMode = -1;
-        this.colorSpace = -1;
 
         try (MemoryStack stack = stackPush()) {
+
+            capabilities = VkSurfaceCapabilitiesKHR.mallocStack(stack);
+
+            int status = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device,surface,capabilities);
+
+            if(status != VK_SUCCESS){
+                throw new RuntimeException("Failed to get Device capabilities");
+            }
 
             IntBuffer pFormatCount = stack.ints(-1);                                                  //create and populate available format info
             vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, pFormatCount, null);
@@ -52,8 +59,6 @@ public class SwapchainSupportDetails {
             if(pFormats == null){        //if a desired format could not be found get whatever is available
                 format = pFormats.get(0);
             }
-
-            colorSpace = format.colorSpace();
 
             IntBuffer pPresentationModeCount = stack.ints(-1);
             vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, pPresentationModeCount, null);
@@ -102,7 +107,7 @@ public class SwapchainSupportDetails {
     }
 
     public boolean isValid(){
-        return  (format != null) && (presentMode != -1) && (colorSpace != -1);
+        return  (format != null) && (presentMode != -1);
     }
 
 

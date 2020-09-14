@@ -27,4 +27,12 @@ public class QueueFamilyIndices {
 
         return unique;
     }
+
+    public Set uniqueGraphicsIndices(){
+        Set unique = new HashSet<Integer>();
+        unique.add(graphicsFamilyIndex);
+        unique.add(presentationFamilyIndex);
+
+        return unique;
+    }
 }
