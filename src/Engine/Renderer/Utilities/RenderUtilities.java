@@ -10,15 +10,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import static org.lwjgl.system.MemoryStack.stackGet;
+import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.util.shaderc.Shaderc.*;
 import static org.lwjgl.util.shaderc.Shaderc.shaderc_compile_into_spv;
+import static org.lwjgl.vulkan.KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 import static org.lwjgl.vulkan.VK10.*;
 
-public class EngineUtilities {
+public class RenderUtilities {
+
+    private static PointerBuffer extensionsPointer = null;
+    private static ArrayList<String> extensions = null;
 
     private static long createCompiler() {
         long options = shaderc_compile_options_initialize();          //init shaderC compiler basic settings;
@@ -61,6 +67,29 @@ public class EngineUtilities {
         return module;
     }
 
+    public static ArrayList<String> getExtensions(){
+
+        extensions = new ArrayList<String>();
+        extensions.add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        return extensions;
+    }
+
+    public static PointerBuffer getDeviceRequiredExtensionsPointer(){
+        try(MemoryStack stack = stackPush()){
+
+            ArrayList<String> extensions = getExtensions();
+
+            if(extensionsPointer==null) {
+                extensionsPointer = memAllocPointer(extensions.size());
+                for(String extensionName : extensions) {
+                    ByteBuffer extension = memUTF8(extensionName);
+                    extensionsPointer.put(extension);
+                }
+                extensionsPointer.flip();
+            }
+            return extensionsPointer;
+        }
+    }
 
     public static PointerBuffer asPointerBuffer(Collection<String> collection) {
 
@@ -74,6 +103,7 @@ public class EngineUtilities {
 
         return buffer.rewind();
     }
+
 
 
 }

@@ -2,6 +2,7 @@ package Engine.Renderer.PhysicalDevice;
 
 import Engine.Renderer.Renderer;
 import Engine.Renderer.Swapchain.SwapchainSupportDetails;
+import Engine.Renderer.Utilities.RenderUtilities;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
@@ -21,13 +22,13 @@ import static org.lwjgl.vulkan.VK10.VK_QUEUE_COMPUTE_BIT;
 
 public class PhysicalDevice {
 
-    private PointerBuffer extensionsPointer = null;
-    private ArrayList<String> extensions = null;
-    private VkPhysicalDevice device;
 
+    private VkPhysicalDevice pDevice;
     private QueueFamilyIndices indices;
 
     public PhysicalDevice(){
+
+
     }
 
     public VkPhysicalDevice selectDevice(long surface) {
@@ -40,7 +41,7 @@ public class PhysicalDevice {
             VkPhysicalDevice highestDevice = null;
             for(int i = 0; i<devices.capacity(); i++){
                 VkPhysicalDevice testedDevice = new VkPhysicalDevice(devices.get(i), Renderer.getVkInstance());
-                int score = rateDevice(testedDevice, surface);
+                int score = rateDevice(testedDevice, surface, stack);
                 if(highestScore<score){
                     highestScore = score;
                     highestDevice = testedDevice;
@@ -50,16 +51,21 @@ public class PhysicalDevice {
             if(highestScore == -1){
                 throw new RuntimeException("Failed to find compatible device");
             }
-            device = highestDevice;
-            return device;
+
+            if(DEBUG.get(true)) {
+                VkPhysicalDeviceProperties properties = VkPhysicalDeviceProperties.callocStack(stack);
+                vkGetPhysicalDeviceProperties(highestDevice, properties);
+                System.out.println("Device " + properties.deviceNameString() + " selected");
+            }
+
+            pDevice = highestDevice;
+            return pDevice;
         }
     }
 
-    private int rateDevice(VkPhysicalDevice testedDevice, long surface){
+    private int rateDevice(VkPhysicalDevice testedDevice, long surface, MemoryStack stack){
 
-        try(MemoryStack stack = stackPush()) {
-
-            if (!checkDeviceCompatible(testedDevice, surface)) {
+            if (!checkDeviceCompatible(testedDevice, surface,stack)) {
                 return -1;
             }
 
@@ -67,14 +73,15 @@ public class PhysicalDevice {
             vkGetPhysicalDeviceProperties(testedDevice, properties);
 
             return properties.limits().maxImageDimension2D() + properties.limits().maxMemoryAllocationCount();
-        }
     }
 
-    private boolean checkDeviceCompatible(VkPhysicalDevice testedDevice, long surface){
+    private boolean checkDeviceCompatible(VkPhysicalDevice testedDevice, long surface, MemoryStack stack){
         if(checkDeviceExtensionsSupported(testedDevice)) {
 
             //as swapchainSupportDetails is just some device enumerate and some queries its not too expensive to create a few here
             SwapchainSupportDetails tempSwapchainSupportDetails = new SwapchainSupportDetails(testedDevice, surface);
+            tempSwapchainSupportDetails.selectFormat(stack);
+            tempSwapchainSupportDetails.selectPresentMode(stack);
 
             //does the device have the queues we need and swapchain support
             return (findQueueFamilies(testedDevice, surface).validate() && tempSwapchainSupportDetails.isValid());
@@ -91,7 +98,7 @@ public class PhysicalDevice {
             VkExtensionProperties.Buffer availableExtensions = VkExtensionProperties.callocStack(pExtensionCount.get(0),stack);
             vkEnumerateDeviceExtensionProperties(testedDevice, (ByteBuffer) null,pExtensionCount,availableExtensions);
 
-            ArrayList<String> requiredExtensions = getExtensions();
+            ArrayList<String> requiredExtensions = RenderUtilities.getExtensions();
             for(int i = 0; i<availableExtensions.capacity(); i++){
                 requiredExtensions.remove(availableExtensions.get(i).extensionNameString());
                 if(requiredExtensions.isEmpty()){
@@ -154,32 +161,12 @@ public class PhysicalDevice {
         }
     }
 
-    public ArrayList<String> getExtensions(){
-        if(extensions==null){
-            extensions = new ArrayList<String>();
-            extensions.add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-        }
-        return extensions;
-    }
 
-    public PointerBuffer getDeviceRequiredExtensionsPointer(){
-        try(MemoryStack stack = stackPush()){
-            if(extensionsPointer==null) {
-                extensionsPointer = memAllocPointer(1);
 
-                for(String extensionName : getExtensions()) {
-                    ByteBuffer extension = memUTF8(extensionName);
-                    extensionsPointer.put(extension);
 
-                }
-                extensionsPointer.flip();
-            }
-            return extensionsPointer;
-        }
-    }
 
-    public VkPhysicalDevice getDevice() {
-        return device;
+    public VkPhysicalDevice getPDevice() {
+        return pDevice;
     }
 
     public QueueFamilyIndices getQueueFamilyIndices(){

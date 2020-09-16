@@ -4,7 +4,6 @@ import Engine.Renderer.Instance.Instance;
 import Engine.Renderer.LogicalDevice.LogicalDevice;
 import Engine.Renderer.PhysicalDevice.PhysicalDevice;
 import Engine.Renderer.Swapchain.Swapchain;
-import Engine.Renderer.Utilities.EngineUtilities;
 import Engine.Renderer.ValidationLayers.ValidationLayers;
 import Engine.Renderer.Window.Window;
 import org.lwjgl.system.MemoryStack;
@@ -54,6 +53,8 @@ public class Renderer {
     }
 
     public static void cleanUp(){
+
+        swapchain.destroy(lDevice);
 
         logicalDevice.destroy();
 

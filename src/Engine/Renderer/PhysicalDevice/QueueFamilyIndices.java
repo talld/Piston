@@ -19,7 +19,7 @@ public class QueueFamilyIndices {
         return (graphicsFamilyIndex != -1 && presentationFamilyIndex != -1 && computeFamilyIndex != -1);
     }
 
-    public Set uniqueIndices(){
+    public Set<Integer> uniqueIndices(){
         Set unique = new HashSet<Integer>();
         unique.add(graphicsFamilyIndex);
         unique.add(presentationFamilyIndex);
@@ -28,7 +28,7 @@ public class QueueFamilyIndices {
         return unique;
     }
 
-    public Set uniqueGraphicsIndices(){
+    public Set<Integer> uniqueGraphicsIndices(){
         Set unique = new HashSet<Integer>();
         unique.add(graphicsFamilyIndex);
         unique.add(presentationFamilyIndex);

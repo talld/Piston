@@ -12,8 +12,8 @@ import java.util.List;
 
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.KHRSurface.VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-import static org.lwjgl.vulkan.KHRSwapchain.VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-import static org.lwjgl.vulkan.KHRSwapchain.vkCreateSwapchainKHR;
+import static org.lwjgl.vulkan.KHRSurface.vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
+import static org.lwjgl.vulkan.KHRSwapchain.*;
 import static org.lwjgl.vulkan.VK10.*;
 
 public class Swapchain {
@@ -31,25 +31,33 @@ public class Swapchain {
     public long create(PhysicalDevice physicalDevice, VkDevice lDevice, Window window) {
         try (MemoryStack stack = stackPush()) {
 
-            VkPhysicalDevice device = physicalDevice.getDevice();
+            VkPhysicalDevice device = physicalDevice.getPDevice();
 
 
             long surface = window.getSurface();
             supportDetails = new SwapchainSupportDetails(device,surface);
-            supportDetails.chooseSwapchainExtent(device,window);
-            int imageCount = supportDetails.capabilities.minImageCount()+1;
 
-            if(supportDetails.capabilities.maxImageCount() > 0 && imageCount > supportDetails.capabilities.maxImageCount()) {
-                imageCount = supportDetails.capabilities.maxImageCount();
+            VkExtent2D swapchainExtent = supportDetails.selectSwapchainExtent(window,stack);
+
+            VkSurfaceCapabilitiesKHR capabilities = supportDetails.getCapabilities(stack);
+
+            VkSurfaceFormatKHR format = supportDetails.selectFormat(stack);
+
+            int presnetationMode = supportDetails.selectPresentMode(stack);
+
+            int imageCount = capabilities.minImageCount()+1;
+
+            if(capabilities.maxImageCount() > 0 && imageCount > capabilities.maxImageCount()) {
+                imageCount = capabilities.maxImageCount();
             }
 
             VkSwapchainCreateInfoKHR swapchainCreateInfo = VkSwapchainCreateInfoKHR.callocStack(stack)
                     .sType(VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR)
                     .surface(surface)
                     .minImageCount(imageCount)
-                    .imageFormat(supportDetails.format.format())
-                    .imageColorSpace(supportDetails.format.colorSpace())
-                    .imageExtent(supportDetails.swapchainExtent)
+                    .imageFormat(format.format())
+                    .imageColorSpace(format.colorSpace())
+                    .imageExtent(swapchainExtent)
                     .imageArrayLayers(1)
                     .imageUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
 
@@ -58,28 +66,21 @@ public class Swapchain {
             if(indices.uniqueGraphicsIndices().size() == 1){
                 swapchainCreateInfo.imageSharingMode(VK_SHARING_MODE_EXCLUSIVE);
             }else{
-
-                IntBuffer pQueueFamilyIndices = stack.ints(0,indices.uniqueGraphicsIndices().size());
-
-                for(Object i : indices.uniqueGraphicsIndices()){
-                    pQueueFamilyIndices.put((int) i);
-                }
-
                 swapchainCreateInfo
                         .imageSharingMode(VK_SHARING_MODE_CONCURRENT)
-                        .pQueueFamilyIndices(pQueueFamilyIndices);
+                        .pQueueFamilyIndices(stack.ints(indices.graphicsFamilyIndex, indices.presentationFamilyIndex));
             }
 
             swapchainCreateInfo
-                    .preTransform(supportDetails.capabilities.currentTransform())
+                    .preTransform(capabilities.currentTransform())
                     .compositeAlpha(VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
-                    .presentMode(supportDetails.presentMode)
+                    .presentMode(presnetationMode)
                     .clipped(true)
                     .oldSwapchain(VK_NULL_HANDLE);
 
             LongBuffer pSwapchain = stack.longs(VK_NULL_HANDLE);
 
-            int status =vkCreateSwapchainKHR(lDevice,swapchainCreateInfo,null,pSwapchain);
+            int status = vkCreateSwapchainKHR(lDevice,swapchainCreateInfo,null,pSwapchain);
 
             if(status != VK_SUCCESS){
                 throw new RuntimeException("Failed to createSwapchain");
@@ -91,7 +92,7 @@ public class Swapchain {
     }
 
 
-    public void destroy(){
-
+    public void destroy(VkDevice lDevice){
+        vkDestroySwapchainKHR(lDevice,swapchain,null);
     }
 }

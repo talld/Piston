@@ -36,6 +36,10 @@ public class ValidationLayers {
     }
 
 
+    public static Set<String> getValidationLayers(){
+        return VALIDATION_LAYERS;
+    }
+
 
     public static PointerBuffer getPointerBuffer(){     //return pointerBuffer to validation layers
 
