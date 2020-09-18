@@ -4,6 +4,7 @@ import org.lwjgl.glfw.*;
 import org.lwjgl.system.*;
 import org.lwjgl.vulkan.VkInstance;
 
+import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -49,6 +50,16 @@ public class Window {
         }
     }
 
+    public void resize(){
+        try(MemoryStack stack = stackPush()) {
+            glfwSetWindowSize(window, windowWidth, windowHeight);
+
+            IntBuffer top = stack.ints(0);
+            glfwGetWindowFrameSize(window,null,top,null,null);
+
+            glfwSetWindowPos(window,0,top.get());
+        }
+    }
 
     public void update(){
         glfwPollEvents();

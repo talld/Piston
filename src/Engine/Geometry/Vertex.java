@@ -1,6 +1,6 @@
 package Engine.Geometry;
 
-import Engine.Renderer.math.Vector3f;
+import Engine.math.Vector3f;
 
 public class Vertex {
 

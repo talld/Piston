@@ -52,6 +52,7 @@ public class RenderUtilities {
     }
 
     public static long createShaderModule(String path, String name, int stage, VkDevice device) {
+
         VkShaderModuleCreateInfo cInfo = VkShaderModuleCreateInfo.calloc();
         long c = createCompiler();
         cInfo.sType(VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);

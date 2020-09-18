@@ -1,4 +1,4 @@
-package Engine.Renderer.IO;
+package Engine.IO;
 
 import Engine.Renderer.Renderer;
 
@@ -22,11 +22,11 @@ public class Input {
     }
 
     public static void update() {
-        releasedKeys.clear();
 
-
-
-        priorPressedKeys.addAll(pressedKeys);
         pressedKeys.clear();
+    }
+
+    public static boolean getPressed(int key){
+        return (pressedKeys.contains(key));
     }
 }

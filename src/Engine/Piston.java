@@ -1,12 +1,12 @@
 package Engine;
 
-import Engine.Renderer.IO.Input;
+import Engine.IO.Input;
 import Engine.Renderer.Renderer;
 import Game.Game;
 
 public class Piston {
 
-    private Game game = new Game();
+    private Game game;
     public boolean end = false;
 
     public Piston(){
@@ -18,6 +18,7 @@ public class Piston {
 
     public void init() {
         Renderer renderer = new Renderer();
+        game = new Game(renderer);
         Renderer.init();
     }
 
