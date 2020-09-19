@@ -53,19 +53,21 @@ public class RenderUtilities {
 
     public static long createShaderModule(String path, String name, int stage, VkDevice device) {
 
-        VkShaderModuleCreateInfo cInfo = VkShaderModuleCreateInfo.calloc();
-        long c = createCompiler();
-        cInfo.sType(VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
-        long result = shaderc_compile_into_spv(c, getFileSource(path), stage, name, "main", 0l);
-        cInfo.pCode(shaderc_result_get_bytes(result));                           //stores results from file reading in buffer then gives said buffer as code pointer
-        LongBuffer pModule = memAllocLong(1);
-        int check = vkCreateShaderModule(device, cInfo, null, pModule);
-        if (check != VK_SUCCESS) {
-            throw new IllegalStateException("Failed to create shader:" + name);
+        try(MemoryStack stack = stackPush()) {
+
+            VkShaderModuleCreateInfo cInfo = VkShaderModuleCreateInfo.callocStack(stack);
+            long c = createCompiler();
+            cInfo.sType(VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO);
+            long result = shaderc_compile_into_spv(c, getFileSource(path), stage, name, "main", NULL);
+            cInfo.pCode(shaderc_result_get_bytes(result));                           //stores results from file reading in buffer then gives said buffer as code pointer
+            LongBuffer pModule = stack.longs(VK_NULL_HANDLE);
+            int status = vkCreateShaderModule(device, cInfo, null, pModule);
+            if (status != VK_SUCCESS) {
+                throw new IllegalStateException("Failed to create shader:" + name);
+            }
+            long  module = pModule.get();
+            return module;
         }
-        long module = pModule.get();
-        memFree(pModule);
-        return module;
     }
 
     public static ArrayList<String> getExtensions(){

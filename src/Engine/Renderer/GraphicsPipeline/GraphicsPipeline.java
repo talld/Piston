@@ -1,6 +1,8 @@
 package Engine.Renderer.GraphicsPipeline;
 
+import Engine.Renderer.RenderPass.RenderPass;
 import Engine.Renderer.Swapchain.Swapchain;
+import Engine.Renderer.Utilities.ErrorUtilities;
 import Engine.Renderer.Utilities.RenderUtilities;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
@@ -10,6 +12,7 @@ import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 
 import static org.lwjgl.system.MemoryStack.stackPush;
+import static org.lwjgl.util.shaderc.Shaderc.shaderc_glsl_fragment_shader;
 import static org.lwjgl.util.shaderc.Shaderc.shaderc_glsl_vertex_shader;
 import static org.lwjgl.vulkan.VK10.*;
 
@@ -17,17 +20,18 @@ public class GraphicsPipeline {
 
     private long graphicsPipelineLayout;
 
+    private long graphicsPipeline;
 
     public GraphicsPipeline(){
 
     }
 
-    public long create(VkDevice lDevice, Swapchain swapchain){
+    public long create(VkDevice lDevice, Swapchain swapchain, RenderPass renderPass){
 
         try(MemoryStack stack = stackPush()){
 
-            long vertexShaderModule = RenderUtilities.createShaderModule("Assets/Shaders/base.vert","vert",shaderc_glsl_vertex_shader,lDevice);
-            long fragmentShaderModule = RenderUtilities.createShaderModule("Assets/Shaders/base.frag","vert",shaderc_glsl_vertex_shader,lDevice);
+            long vertexShaderModule = RenderUtilities.createShaderModule("Assets/Shaders/base.vert","main",shaderc_glsl_vertex_shader,lDevice);
+            long fragmentShaderModule = RenderUtilities.createShaderModule("Assets/Shaders/base.frag","main2",shaderc_glsl_fragment_shader,lDevice);
 
             ByteBuffer entryPoint = stack.UTF8("main");
 
@@ -43,8 +47,8 @@ public class GraphicsPipeline {
 
             VkPipelineShaderStageCreateInfo fragmentShaderStageCreateInfo = shaderStagesCreateInfo.get(1)
                     .sType(VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO)
-                    .stage(VK_SHADER_STAGE_VERTEX_BIT)
-                    .module(vertexShaderModule)
+                    .stage(VK_SHADER_STAGE_FRAGMENT_BIT)
+                    .module(fragmentShaderModule)
                     .pName(entryPoint);
 
             //Vertex
@@ -116,11 +120,6 @@ public class GraphicsPipeline {
                     .pAttachments(colorBlendAttachment)
                     .blendConstants(stack.floats(0.0f, 0.0f, 0.0f, 0.0f));
 
-
-
-            vkDestroyShaderModule(lDevice,vertexShaderModule,null);
-            vkDestroyShaderModule(lDevice,fragmentShaderModule,null);
-
             VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkPipelineLayoutCreateInfo.callocStack(stack);
             pipelineLayoutInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO);
 
@@ -134,12 +133,50 @@ public class GraphicsPipeline {
 
             graphicsPipelineLayout = pPipelineLayout.get(0);
 
+            VkGraphicsPipelineCreateInfo.Buffer pipelineCreateInfo = VkGraphicsPipelineCreateInfo.callocStack(1,stack)
+                    .sType(VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO)
+                    .pStages(shaderStagesCreateInfo)
+                    .pVertexInputState(VertexInputStateCreateInfo)
+                    .pInputAssemblyState(inputAssemblyStateCreateInfo)
+                    .pViewportState(viewportStateCreateInfo)
+                    .pRasterizationState(rasterizationStateCreateInfo)
+                    .pMultisampleState(multisampling)
+                    .pDepthStencilState(null)
+                    .pColorBlendState(colorBlending)
+                    .pDepthStencilState(null)
+                    .layout(graphicsPipelineLayout)
+                    .renderPass(renderPass.getVkRenderPass())
+                    .subpass(0);
+
+            LongBuffer pGraphicsPipeline = stack.longs(VK_NULL_HANDLE);
+
+            status = vkCreateGraphicsPipelines(lDevice,VK_NULL_HANDLE,pipelineCreateInfo,null,pGraphicsPipeline);
+
+            if(status != VK_SUCCESS){
+                throw new RuntimeException("Failed to create Graphics Pipeline: " + ErrorUtilities.getError(status));
+            }
+
+            graphicsPipeline = pGraphicsPipeline.get(0);
+
+            vkDestroyShaderModule(lDevice,vertexShaderModule,null);
+            vkDestroyShaderModule(lDevice,fragmentShaderModule,null);
+
         }
-        return graphicsPipelineLayout;
+
+        return graphicsPipeline;
+
     }
 
     public void destroy(VkDevice lDevice){
         vkDestroyPipelineLayout(lDevice,graphicsPipelineLayout,null);
+        vkDestroyPipeline(lDevice,graphicsPipeline,null);
     }
 
+    public long getVkGraphicsPipeline() {
+        return graphicsPipeline;
+    }
+
+    public long getVkGraphicsPipelineLayout(){
+        return graphicsPipelineLayout;
+    }
 }

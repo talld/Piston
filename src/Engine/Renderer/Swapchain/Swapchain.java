@@ -2,6 +2,7 @@ package Engine.Renderer.Swapchain;
 
 import Engine.Renderer.PhysicalDevice.PhysicalDevice;
 import Engine.Renderer.PhysicalDevice.QueueFamilyIndices;
+import Engine.Renderer.Utilities.ErrorUtilities;
 import Engine.Renderer.Window.Window;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
@@ -87,7 +88,7 @@ public class Swapchain {
             int status = vkCreateSwapchainKHR(lDevice,swapchainCreateInfo,null,pSwapchain);
 
             if(status != VK_SUCCESS){
-                throw new RuntimeException("Failed to create Swapchain");
+                throw new RuntimeException("Failed to create Swapchain: " + ErrorUtilities.getError(status));
             }
 
             swapchain = pSwapchain.get(0);
@@ -143,6 +144,18 @@ public class Swapchain {
         return swapchainImages;
     }
 
+    public ArrayList<Long> getSwapchainImagesViews(){
+        return swapchainImagesViews;
+    }
+
+    public int getImageFormat(){
+        return swapchainImageFormat;
+    }
+
+    public VkExtent2D getSwapchainExtent(){
+        return swapchainExtent;
+    }
+
     public void destroy(VkDevice lDevice){
 
         for(long imageView : swapchainImagesViews){
@@ -150,9 +163,5 @@ public class Swapchain {
         }
 
         vkDestroySwapchainKHR(lDevice,swapchain,null);
-    }
-
-    public VkExtent2D getSwapchainExtent(){
-        return swapchainExtent;
     }
 }

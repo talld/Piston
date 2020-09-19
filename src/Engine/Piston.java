@@ -43,6 +43,7 @@ public class Piston {
     }
 
     public void render() {
+        Renderer.render();
     }
 
     public static void main(String[] args) {

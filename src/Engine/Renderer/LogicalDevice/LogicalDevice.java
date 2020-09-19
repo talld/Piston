@@ -2,6 +2,7 @@ package Engine.Renderer.LogicalDevice;
 
 import Engine.Renderer.PhysicalDevice.PhysicalDevice;
 import Engine.Renderer.PhysicalDevice.QueueFamilyIndices;
+import Engine.Renderer.Utilities.ErrorUtilities;
 import Engine.Renderer.Utilities.RenderUtilities;
 import Engine.Renderer.ValidationLayers.ValidationLayers;
 import org.lwjgl.PointerBuffer;
@@ -55,8 +56,10 @@ public class LogicalDevice {
 
             PointerBuffer pDevice = stack.pointers(VK_NULL_HANDLE);
 
-            if(vkCreateDevice(device.getPDevice(),deviceCreateInfo,null,pDevice)!=VK_SUCCESS){
-                throw new RuntimeException("Failed to create logical device");
+            int status = vkCreateDevice(device.getPDevice(),deviceCreateInfo,null,pDevice);
+
+            if(status!=VK_SUCCESS){
+                throw new RuntimeException("Failed to create logical device: " + ErrorUtilities.getError(status));
             }
 
             lDevice = new VkDevice(pDevice.get(0),device.getPDevice(),deviceCreateInfo);
