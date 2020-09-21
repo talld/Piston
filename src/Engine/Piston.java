@@ -3,6 +3,7 @@ package Engine;
 import Engine.IO.Input;
 import Engine.Renderer.Renderer;
 import Game.Game;
+import org.lwjgl.system.MemoryStack;
 
 public class Piston {
 
@@ -10,10 +11,12 @@ public class Piston {
     public boolean end = false;
 
     public Piston(){
-        init();
-        Input.init();
-        gameLoop();
-        cleanUp();
+        try(MemoryStack stack = MemoryStack.stackPush()) {
+            init();
+            Input.init();
+            gameLoop();
+            cleanUp();
+        }
     }
 
     public void init() {

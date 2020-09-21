@@ -69,6 +69,8 @@ public class LogicalDevice {
             vkGetDeviceQueue(lDevice,device.getQueueFamilyIndices().graphicsFamilyIndex, 0, pQueue);
             graphicsQueue = new VkQueue(pQueue.get(0), lDevice);
 
+
+
             vkGetDeviceQueue(lDevice, device.getQueueFamilyIndices().presentationFamilyIndex, 0, pQueue);
             presentQueue = new VkQueue(pQueue.get(0), lDevice);
 

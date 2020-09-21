@@ -144,6 +144,10 @@ public class Swapchain {
         return swapchainImages;
     }
 
+    public long getVkSwapchain() {
+        return swapchain;
+    }
+
     public ArrayList<Long> getSwapchainImagesViews(){
         return swapchainImagesViews;
     }

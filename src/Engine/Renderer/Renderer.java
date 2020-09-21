@@ -8,8 +8,9 @@ import Engine.Renderer.Instance.Instance;
 import Engine.Renderer.LogicalDevice.LogicalDevice;
 import Engine.Renderer.PhysicalDevice.PhysicalDevice;
 import Engine.Renderer.RenderPass.RenderPass;
+import Engine.Renderer.RenderUpdater.RenderUpdater;
 import Engine.Renderer.Swapchain.Swapchain;
-import Engine.Renderer.Sync.Semaphores;
+import Engine.Renderer.Sync.Sync;
 import Engine.Renderer.ValidationLayers.ValidationLayers;
 import Engine.Renderer.Window.Window;
 import org.lwjgl.vulkan.*;
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 import static org.lwjgl.vulkan.EXTDebugUtils.vkCreateDebugUtilsMessengerEXT;
-import static org.lwjgl.vulkan.VK10.VK_NULL_HANDLE;
+import static org.lwjgl.vulkan.VK10.*;
 
 public class Renderer {
 
@@ -54,7 +55,12 @@ public class Renderer {
     private static CommandBuffers commandBuffers;
     private static ArrayList<VkCommandBuffer> vkCommandBuffers;
 
-    private static Semaphores semaphores;
+    private static Sync sync;
+
+    private static RenderUpdater renderUpdater;
+
+    private static int width = 640;
+    private static int height = 480;
 
     public Renderer() {
         instance = new Instance();
@@ -66,13 +72,13 @@ public class Renderer {
         frameBuffers = new FrameBuffers();
         commandPool = new CommandPool();
         commandBuffers = new CommandBuffers();
-        semaphores = new Semaphores();
+        renderUpdater = new RenderUpdater();
+        sync = new Sync();
     }
 
     public static void init(){
-
         glfwInit();
-        window = new Window(640, 480, "Window");
+        window = new Window(width, height, "Window");
         window.create();
         vkInstance = instance.create(ValidationLayers.getPointerBuffer());
         surface = window.createSurface(vkInstance);
@@ -87,11 +93,16 @@ public class Renderer {
         vkCommandPool = commandPool.create(physicalDevice, lDevice);
         vkCommandBuffers = commandBuffers.create(lDevice,swapchain,vkCommandPool);
         commandBuffers.record(swapchain,renderPass,graphicsPipeline,frameBuffers);
-        semaphores.create(lDevice);
+        sync.create(lDevice, renderUpdater.getMaxFrames());
+
+        renderUpdater.create(logicalDevice,swapchain,commandBuffers,sync);
     }
 
-    public static void resizeWindow(int width, int height){
+    public static void resizeWindow(int nWidth, int nHeight){
 
+        vkDeviceWaitIdle(lDevice);
+
+        commandPool.destroy(lDevice);
         frameBuffers.destroy(lDevice);
         graphicsPipeline.destroy(lDevice);
         renderPass.destroy(lDevice);
@@ -105,14 +116,19 @@ public class Renderer {
         vkRenderpass = renderPass.create(lDevice, swapchain);
         vkGraphicsPipeline = graphicsPipeline.create(lDevice, swapchain, renderPass);
         vkframebuffers = frameBuffers.create(lDevice, swapchain, renderPass);
+        vkCommandPool = commandPool.create(physicalDevice, lDevice);
         vkCommandBuffers = commandBuffers.create(lDevice,swapchain,vkCommandPool);
         commandBuffers.record(swapchain,renderPass,graphicsPipeline,frameBuffers);
 
+        renderUpdater.create(logicalDevice,swapchain,commandBuffers,sync);
     }
 
     public static void cleanUp(){
 
-        semaphores.destroy(lDevice);
+        vkDeviceWaitIdle(lDevice);
+
+
+        sync.destroy(lDevice);
 
         commandPool.destroy(lDevice);
 
@@ -154,7 +170,7 @@ public class Renderer {
     }
 
     public static void render(){
-
+        renderUpdater.update();
     }
 
     public static Window getWindow() {

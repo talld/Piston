@@ -140,10 +140,10 @@ public class PhysicalDevice {
                     queueFamilyIndices.graphicsFamilyIndex = i;
                     graphicsQueueFound = true;
                 }
-                IntBuffer pSupported = stack.ints(VK_FALSE);
+                IntBuffer pSupported = stack.ints(-1);
                 vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, pSupported);
 
-                if ((pSupported.get(0) == VK_SUCCESS) && !presentationQueueFound) {
+                if ((pSupported.get(0) == VK_TRUE) && !presentationQueueFound) {
                     queueFamilyIndices.presentationFamilyIndex = i;
                     presentationQueueFound = true;
                 }

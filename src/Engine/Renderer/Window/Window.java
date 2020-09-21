@@ -52,12 +52,12 @@ public class Window {
 
     public void resize(){
         try(MemoryStack stack = stackPush()) {
-            glfwSetWindowSize(window, windowWidth, windowHeight);
 
             IntBuffer top = stack.ints(0);
             glfwGetWindowFrameSize(window,null,top,null,null);
 
             glfwSetWindowPos(window,0,top.get());
+            glfwSetWindowSize(window, windowWidth, windowHeight);
         }
     }
 

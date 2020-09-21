@@ -104,6 +104,7 @@ public class CommandBuffers {
 
     }
 
-
-
+    public ArrayList<VkCommandBuffer> getCommandBuffers() {
+        return commandBuffers;
+    }
 }

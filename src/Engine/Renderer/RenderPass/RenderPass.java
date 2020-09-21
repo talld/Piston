@@ -41,17 +41,26 @@ public class RenderPass {
                     .pColorAttachments(colourAttachmentReference)
                     .colorAttachmentCount(1);
 
+            VkSubpassDependency.Buffer subpassDependency = VkSubpassDependency.callocStack(1, stack)
+                .srcSubpass(VK_SUBPASS_EXTERNAL)
+                .dstSubpass(0)
+                .srcStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
+                .srcAccessMask(0)
+                .dstStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
+                .dstAccessMask(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
+
             VkRenderPassCreateInfo renderPassCreateInfo = VkRenderPassCreateInfo.callocStack(stack)
                     .sType(VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO)
                     .pAttachments(colourAttachmentDescriptions)
-                    .pSubpasses(subpassDescriptions);
+                    .pSubpasses(subpassDescriptions)
+                    .pDependencies(subpassDependency);
 
             LongBuffer pRenderPass = stack.longs(VK_NULL_HANDLE);
 
             int status = vkCreateRenderPass(lDevice, renderPassCreateInfo, null, pRenderPass);
 
             if(status != VK_SUCCESS){
-                throw new RuntimeException("Failed to create Render pass: " + ErrorUtilities.getError(status));
+                throw new RuntimeException("Failed to create Render     pass: " + ErrorUtilities.getError(status));
             }
 
             renderPass = pRenderPass.get();
