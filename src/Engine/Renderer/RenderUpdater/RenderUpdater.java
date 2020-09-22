@@ -64,6 +64,12 @@ public class RenderUpdater {
 
             int imageIndex = pImageIndex.get(0);
 
+            if(sync.getInFlightFence(imageIndex) != VK_NULL_HANDLE){
+                vkWaitForFences(lDevice, sync.getInFlightFence(imageIndex), true, Integer.MAX_VALUE);
+            }
+
+            sync.setImagesInFlight(imageIndex,sync.getInFlightFence(currentFrame));
+
             VkSubmitInfo.Buffer submitInfo = VkSubmitInfo.callocStack(1, stackGet())
                     .sType(VK_STRUCTURE_TYPE_SUBMIT_INFO)
                     .pWaitSemaphores(stack.longs(sync.getImageAvailableSemaphore(currentFrame)))
@@ -72,12 +78,9 @@ public class RenderUpdater {
                     .pWaitDstStageMask(stack.ints(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT))
                     .pCommandBuffers(stack.pointers(vkCommandBuffers.get(imageIndex)));
 
-
-
             vkResetFences(lDevice,sync.getInFlightFence(currentFrame));
 
-
-            int status = vkQueueSubmit(logicalDevice.graphicsQueue, submitInfo, sync.getInFlightFence(currentFrame));
+            int status = vkQueueSubmit(logicalDevice.getGraphicsQueue(), submitInfo, sync.getInFlightFence(currentFrame));
 
             if (status != VK_SUCCESS) {
                 throw new RuntimeException("Failed to submit graphics queue: " + ErrorUtilities.getError(status));
@@ -90,13 +93,17 @@ public class RenderUpdater {
                     .swapchainCount(1)
                     .pImageIndices(stackGet().ints(imageIndex));
 
-            status = vkQueuePresentKHR(logicalDevice.presentQueue, presentInfo);
+            status = vkQueuePresentKHR(logicalDevice.getPresentQueue(), presentInfo);
 
             if (status != VK_SUCCESS) {
                 throw new RuntimeException("Failed to submit present queue: " + ErrorUtilities.getError(status));
             }
         }
         currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+    }
+
+    public void destroy(){
+        vkDeviceWaitIdle(lDevice);
     }
 
     public int getMaxFrames() {

@@ -44,7 +44,7 @@ public class Renderer {
     private static long vkRenderpass;
 
     private static GraphicsPipeline graphicsPipeline;
-    private static long vkGraphicsPipeline;
+    private st  atic long vkGraphicsPipeline;
 
     private static FrameBuffers frameBuffers;
     private static ArrayList<Long> vkframebuffers;
@@ -93,24 +93,23 @@ public class Renderer {
         vkCommandPool = commandPool.create(physicalDevice, lDevice);
         vkCommandBuffers = commandBuffers.create(lDevice,swapchain,vkCommandPool);
         commandBuffers.record(swapchain,renderPass,graphicsPipeline,frameBuffers);
-        sync.create(lDevice, renderUpdater.getMaxFrames());
-
+        sync.create(lDevice,swapchain , renderUpdater.getMaxFrames());
         renderUpdater.create(logicalDevice,swapchain,commandBuffers,sync);
     }
 
     public static void resizeWindow(int nWidth, int nHeight){
 
-        vkDeviceWaitIdle(lDevice);
-
+        renderUpdater.destroy();
         commandPool.destroy(lDevice);
         frameBuffers.destroy(lDevice);
         graphicsPipeline.destroy(lDevice);
         renderPass.destroy(lDevice);
         swapchain.destroy(lDevice);
 
-        window.setWidth(width);
-        window.setHeight(height);
+        window.setWidth(nWidth);
+        window.setHeight(nHeight);
         window.resize();
+
         vkSwapchain = swapchain.create(physicalDevice,lDevice,window,VK_NULL_HANDLE);
         swapchainImagesViews = swapchain.createSwapchainImageViews(lDevice);
         vkRenderpass = renderPass.create(lDevice, swapchain);
@@ -125,8 +124,7 @@ public class Renderer {
 
     public static void cleanUp(){
 
-        vkDeviceWaitIdle(lDevice);
-
+        renderUpdater.destroy();
 
         sync.destroy(lDevice);
 

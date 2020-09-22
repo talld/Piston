@@ -20,9 +20,9 @@ public class LogicalDevice {
 
     private VkDevice lDevice;
 
-    public VkQueue graphicsQueue;
+    private VkQueue graphicsQueue;
 
-    public VkQueue presentQueue;
+    private VkQueue presentQueue;
 
     public LogicalDevice(){
 
@@ -66,12 +66,12 @@ public class LogicalDevice {
 
             PointerBuffer pQueue = stack.pointers(VK_NULL_HANDLE);
 
-            vkGetDeviceQueue(lDevice,device.getQueueFamilyIndices().graphicsFamilyIndex, 0, pQueue);
+            vkGetDeviceQueue(lDevice,device.getQueueFamilyIndices().getGraphicsFamilyIndex(), 0, pQueue);
             graphicsQueue = new VkQueue(pQueue.get(0), lDevice);
 
 
 
-            vkGetDeviceQueue(lDevice, device.getQueueFamilyIndices().presentationFamilyIndex, 0, pQueue);
+            vkGetDeviceQueue(lDevice, device.getQueueFamilyIndices().getPresentationFamilyIndex(), 0, pQueue);
             presentQueue = new VkQueue(pQueue.get(0), lDevice);
 
             return lDevice;
@@ -80,6 +80,14 @@ public class LogicalDevice {
 
     public VkDevice get(){
         return lDevice;
+    }
+
+    public VkQueue getGraphicsQueue() {
+        return graphicsQueue;
+    }
+
+    public VkQueue getPresentQueue() {
+        return presentQueue;
     }
 
     public void destroy(){

@@ -27,7 +27,7 @@ public class CommandPool {
 
             VkCommandPoolCreateInfo commandPoolCreateInfo = VkCommandPoolCreateInfo.callocStack(stack)
                     .sType(VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO)
-                    .queueFamilyIndex(queueFamilyIndices.graphicsFamilyIndex)
+                    .queueFamilyIndex(queueFamilyIndices.getGraphicsFamilyIndex())
                     .flags(0);
 
             LongBuffer pCommandPool = stack.longs(VK_NULL_HANDLE);

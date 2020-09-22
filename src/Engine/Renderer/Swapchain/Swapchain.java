@@ -74,7 +74,7 @@ public class Swapchain {
                 swapchainCreateInfo.imageSharingMode(VK_SHARING_MODE_EXCLUSIVE);
             }else{
                 swapchainCreateInfo.imageSharingMode(VK_SHARING_MODE_CONCURRENT)
-                                   .pQueueFamilyIndices(stack.ints(indices.graphicsFamilyIndex, indices.presentationFamilyIndex));
+                                   .pQueueFamilyIndices(stack.ints(indices.getGraphicsFamilyIndex(), indices.getPresentationFamilyIndex()));
             }
 
             swapchainCreateInfo.preTransform(capabilities.currentTransform())

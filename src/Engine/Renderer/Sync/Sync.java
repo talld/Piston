@@ -1,5 +1,6 @@
 package Engine.Renderer.Sync;
 
+import Engine.Renderer.Swapchain.Swapchain;
 import Engine.Renderer.Utilities.ErrorUtilities;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkDevice;
@@ -17,23 +18,31 @@ public class Sync {
     ArrayList<Long> imageAvailableSemaphores;
     ArrayList<Long> renderFinishedSemaphores;
     ArrayList<Long> inFlightFences;
+    ArrayList<Long> imagesInFlight;
 
     public Sync(){
 
     }
 
-    public void create(VkDevice lDevice, int maxFrames){
+    public void create(VkDevice lDevice, Swapchain swapchain, int maxFrames){
 
         imageAvailableSemaphores = new ArrayList<Long>(maxFrames);
         renderFinishedSemaphores = new ArrayList<Long>(maxFrames);
         inFlightFences = new ArrayList<Long>(maxFrames);
+        imagesInFlight = new ArrayList<Long>(swapchain.getSwapchainImagesViews().size());
+
+        for(int i = 0; i<swapchain.getSwapchainImagesViews().size(); i++){
+            imagesInFlight.add(0l);
+        }
+
 
         try(MemoryStack stack = stackPush()) {
             VkSemaphoreCreateInfo semaphoreCreateInfo = VkSemaphoreCreateInfo.callocStack(stack)
                     .sType(VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO);
 
             VkFenceCreateInfo fenceCreateInfo = VkFenceCreateInfo.callocStack(stack)
-                    .sType(VK_STRUCTURE_TYPE_FENCE_CREATE_INFO);
+                    .sType(VK_STRUCTURE_TYPE_FENCE_CREATE_INFO)
+                    .flags(VK_FENCE_CREATE_SIGNALED_BIT);
 
             for(int i = 0; i<maxFrames; i++){
 
@@ -71,6 +80,16 @@ public class Sync {
 
     public long getInFlightFence(int i) {
         return inFlightFences.get(i);
+    }
+
+    public long getImagesInFlight(int i){
+        return imagesInFlight.get(i);
+    }
+
+    public void setImagesInFlight(int i, long fence){
+
+            imagesInFlight.set(i, fence);
+
     }
 
     public void destroy(VkDevice lDevice){

@@ -34,15 +34,19 @@ public class PhysicalDevice {
     public VkPhysicalDevice selectDevice(long surface) {
         try(MemoryStack stack = stackPush()) {
             IntBuffer deviceCount = stack.ints(0);
+
             vkEnumeratePhysicalDevices(Renderer.getVkInstance(),deviceCount,null);
+
             PointerBuffer devices = stack.mallocPointer(deviceCount.get(0));
+
             vkEnumeratePhysicalDevices(Renderer.getVkInstance(),deviceCount,devices);
+
             int highestScore = -1;
             VkPhysicalDevice highestDevice = null;
             for(int i = 0; i<devices.capacity(); i++){
                 VkPhysicalDevice testedDevice = new VkPhysicalDevice(devices.get(i), Renderer.getVkInstance());
                 int score = rateDevice(testedDevice, surface, stack);
-                if(highestScore<score){
+                if(score>highestScore){
                     highestScore = score;
                     highestDevice = testedDevice;
                     this.indices = findQueueFamilies(highestDevice, surface);
@@ -72,7 +76,7 @@ public class PhysicalDevice {
             VkPhysicalDeviceProperties properties = VkPhysicalDeviceProperties.callocStack(stack);
             vkGetPhysicalDeviceProperties(testedDevice, properties);
 
-            return properties.limits().maxImageDimension2D() + properties.limits().maxMemoryAllocationCount();
+            return properties.limits().maxImageDimension2D() + properties.limits().maxVertexInputBindings();
     }
 
     private boolean checkDeviceCompatible(VkPhysicalDevice testedDevice, long surface, MemoryStack stack){
@@ -118,7 +122,6 @@ public class PhysicalDevice {
     }
 
     public QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, long surface){
-
         try(MemoryStack stack = stackPush()) {
 
 
@@ -137,19 +140,19 @@ public class PhysicalDevice {
             for (int i = 0; i < queueFamilies.capacity(); i++) {
 
                 if ((queueFamilies.get(i).queueFlags() & VK_QUEUE_GRAPHICS_BIT)==VK_QUEUE_GRAPHICS_BIT && !graphicsQueueFound) {
-                    queueFamilyIndices.graphicsFamilyIndex = i;
+                    queueFamilyIndices.setGraphicsFamilyIndex(i);
                     graphicsQueueFound = true;
                 }
                 IntBuffer pSupported = stack.ints(-1);
                 vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, pSupported);
 
                 if ((pSupported.get(0) == VK_TRUE) && !presentationQueueFound) {
-                    queueFamilyIndices.presentationFamilyIndex = i;
+                    queueFamilyIndices.setPresentationFamilyIndex(i);
                     presentationQueueFound = true;
                 }
 
                 if ((queueFamilies.get(i).queueFlags() & VK_QUEUE_COMPUTE_BIT)==VK_QUEUE_COMPUTE_BIT && !computeQueueFound) {
-                    queueFamilyIndices.computeFamilyIndex = i;
+                    queueFamilyIndices.setComputeFamilyIndex(i);
                     computeQueueFound = true;
                 }
                 if (graphicsQueueFound && presentationQueueFound && computeQueueFound) {

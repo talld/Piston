@@ -5,9 +5,9 @@ import java.util.Set;
 
 public class QueueFamilyIndices {
 
-    public int graphicsFamilyIndex;
-    public int presentationFamilyIndex;
-    public int computeFamilyIndex;
+    private int graphicsFamilyIndex;
+    private int presentationFamilyIndex;
+    private int computeFamilyIndex;
 
     public QueueFamilyIndices() {
         this.graphicsFamilyIndex = -1;
@@ -34,5 +34,29 @@ public class QueueFamilyIndices {
         unique.add(presentationFamilyIndex);
 
         return unique;
+    }
+
+    public void setGraphicsFamilyIndex(int graphicsFamilyIndex) {
+        this.graphicsFamilyIndex = graphicsFamilyIndex;
+    }
+
+    public void setPresentationFamilyIndex(int presentationFamilyIndex) {
+        this.presentationFamilyIndex = presentationFamilyIndex;
+    }
+
+    public void setComputeFamilyIndex(int computeFamilyIndex) {
+        this.computeFamilyIndex = computeFamilyIndex;
+    }
+
+    public int getGraphicsFamilyIndex() {
+        return graphicsFamilyIndex;
+    }
+
+    public int getPresentationFamilyIndex() {
+        return presentationFamilyIndex;
+    }
+
+    public int getComputeFamilyIndex() {
+        return computeFamilyIndex;
     }
 }
