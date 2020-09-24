@@ -73,6 +73,7 @@ public class SwapchainSupportDetails {
             vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, pFormatCount, pFormats);
 
             for (int i = 0; i < pFormats.capacity(); i++) { //search for 32bit rgba color in an non linear color space
+
                 if (pFormats.get(i).format() == VK_FORMAT_B8G8R8A8_SRGB && pFormats.get(i).colorSpace() == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
                     format = pFormats.get(i);
                 }
@@ -113,7 +114,10 @@ public class SwapchainSupportDetails {
             swapchainExtent.height(window.getHeight());
 
             swapchainExtent.width(Math.max(capabilities.minImageExtent().width(),Math.min(capabilities.maxImageExtent().width(), swapchainExtent.width())));
-            swapchainExtent.width(Math.max(capabilities.minImageExtent().height(),Math.min(capabilities.maxImageExtent().height(), swapchainExtent.height())));
+            swapchainExtent.height(Math.max(capabilities.minImageExtent().height(),Math.min(capabilities.maxImageExtent().height(), swapchainExtent.height())));
+
+            swapchainExtent.width(640);
+            swapchainExtent.height(480);
 
             return swapchainExtent;
     }

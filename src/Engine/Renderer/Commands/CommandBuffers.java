@@ -1,5 +1,6 @@
 package Engine.Renderer.Commands;
 
+import Engine.Mesh.Mesh;
 import Engine.Renderer.FrameBuffer.FrameBuffers;
 import Engine.Renderer.GraphicsPipeline.GraphicsPipeline;
 import Engine.Renderer.RenderPass.RenderPass;
@@ -9,6 +10,7 @@ import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 
+import java.nio.LongBuffer;
 import java.util.ArrayList;
 
 import static org.lwjgl.system.MemoryStack.stackPush;
@@ -52,7 +54,7 @@ public class CommandBuffers {
         return commandBuffers;
     }
 
-    public void record(Swapchain swapchain, RenderPass renderPass, GraphicsPipeline graphicsPipeline, FrameBuffers frameBuffers){
+    public void record(Swapchain swapchain, RenderPass renderPass, GraphicsPipeline graphicsPipeline, FrameBuffers frameBuffers, Mesh mesh){
 
         try(MemoryStack stack = stackPush()){
 
@@ -89,7 +91,13 @@ public class CommandBuffers {
                 {
                     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline.getVkGraphicsPipeline());
 
-                    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+
+                    LongBuffer offsets = stack.longs(VK_NULL_HANDLE);
+                    LongBuffer buffer = stack.longs(mesh.getVertexBuffer().getPointer());
+
+                    vkCmdBindVertexBuffers(commandBuffer,0,buffer,offsets);
+
+                    vkCmdDraw(commandBuffer, mesh.getVertices().length, 1, 0, 0);
                 }
                 vkCmdEndRenderPass(commandBuffer);
 

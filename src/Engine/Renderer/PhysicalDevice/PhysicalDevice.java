@@ -15,6 +15,7 @@ import static org.lwjgl.system.Configuration.DEBUG;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.memAllocPointer;
 import static org.lwjgl.system.MemoryUtil.memUTF8;
+import static org.lwjgl.vulkan.KHRDisplay.vkGetDisplayModePropertiesKHR;
 import static org.lwjgl.vulkan.KHRSurface.vkGetPhysicalDeviceSurfaceSupportKHR;
 import static org.lwjgl.vulkan.KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 import static org.lwjgl.vulkan.VK10.*;
@@ -163,10 +164,6 @@ public class PhysicalDevice {
             return queueFamilyIndices;
         }
     }
-
-
-
-
 
     public VkPhysicalDevice getPDevice() {
         return pDevice;

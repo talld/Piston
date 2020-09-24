@@ -27,6 +27,8 @@ public class FrameBuffers {
 
             VkExtent2D swapchainExtent = swapchain.getSwapchainExtent();
 
+            //swapchainExtent.width(320).height(240);
+
             vkFrameBuffers = new ArrayList<Long>(swapchain.getSwapchainImagesViews().size());
             VkFramebufferCreateInfo framebufferCreateInfo = VkFramebufferCreateInfo.callocStack(stack)
                     .sType(VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO)

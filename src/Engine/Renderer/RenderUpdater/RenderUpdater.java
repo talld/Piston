@@ -13,6 +13,7 @@ import org.lwjgl.vulkan.VkSubmitInfo;
 
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Timer;
 
 import static org.lwjgl.system.MemoryStack.stackGet;
 import static org.lwjgl.system.MemoryStack.stackPush;
@@ -34,7 +35,7 @@ public class RenderUpdater {
     private Sync sync;
 
     private int currentFrame = 0;
-    private int MAX_FRAMES_IN_FLIGHT = 3;
+    private int MAX_FRAMES_IN_FLIGHT = 2;
 
     public RenderUpdater(){
 
@@ -54,8 +55,8 @@ public class RenderUpdater {
     }
 
     public void update(){
-        try(MemoryStack stack = stackPush()){
 
+        try(MemoryStack stack = stackPush()){
             vkWaitForFences(lDevice, sync.getInFlightFence(currentFrame), true, Integer.MAX_VALUE);
 
             IntBuffer pImageIndex = stack.mallocInt(1);
@@ -64,8 +65,8 @@ public class RenderUpdater {
 
             int imageIndex = pImageIndex.get(0);
 
-            if(sync.getInFlightFence(imageIndex) != VK_NULL_HANDLE){
-                vkWaitForFences(lDevice, sync.getInFlightFence(imageIndex), true, Integer.MAX_VALUE);
+            if(sync.getImagesInFlight(imageIndex) != VK_NULL_HANDLE){
+                vkWaitForFences(lDevice, sync.getImagesInFlight(imageIndex), true, Integer.MAX_VALUE);
             }
 
             sync.setImagesInFlight(imageIndex,sync.getInFlightFence(currentFrame));
@@ -100,6 +101,7 @@ public class RenderUpdater {
             }
         }
         currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
     }
 
     public void destroy(){

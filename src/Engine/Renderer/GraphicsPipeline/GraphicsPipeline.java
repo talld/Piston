@@ -1,5 +1,6 @@
 package Engine.Renderer.GraphicsPipeline;
 
+import Engine.Geometry.Vertex;
 import Engine.Renderer.RenderPass.RenderPass;
 import Engine.Renderer.Swapchain.Swapchain;
 import Engine.Renderer.Utilities.ErrorUtilities;
@@ -54,7 +55,9 @@ public class GraphicsPipeline {
             //Vertex
 
             VkPipelineVertexInputStateCreateInfo VertexInputStateCreateInfo =  VkPipelineVertexInputStateCreateInfo.callocStack(stack)
-                    .sType(VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO);
+                    .sType(VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO)
+                    .pVertexBindingDescriptions(Vertex.getBindingDescription())
+                    .pVertexAttributeDescriptions(Vertex.getAttributeDescription());
 
             //Assembly
 

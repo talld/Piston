@@ -28,6 +28,7 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Interface" />
         <option value="Class" />
       </list>
     </option>
@@ -49,8 +50,8 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="full.screen.before.presentation.mode" value="false" />
-    <property name="last_opened_file_path" value="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom" />
-    <property name="project.structure.last.edited" value="Project" />
+    <property name="last_opened_file_path" value="$USER_HOME$/Downloads/joml/joml-1.9.25.jar!/" />
+    <property name="project.structure.last.edited" value="Libraries" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
     <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
@@ -141,6 +142,10 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
+    <state x="309" y="42" key="#Inspections" timestamp="1600952396498">
+      <screen x="0" y="0" width="1366" height="728" />
+    </state>
+    <state x="309" y="42" key="#Inspections/0.0.1366.728@0.0.1366.728" timestamp="1600952396498" />
     <state x="389" y="134" key="#Log_Highlighting_(ideolog)" timestamp="1598038733515">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
@@ -179,29 +184,29 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state x="413" y="110" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1366.728@0.0.1366.728" timestamp="1600705192175" />
-    <state x="470" y="118" key="FileChooserDialogImpl" timestamp="1600184410741">
+    <state x="470" y="118" key="FileChooserDialogImpl" timestamp="1600952764537">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="470" y="118" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1600184410741" />
-    <state width="1323" height="148" key="GridCell.Tab.0.bottom" timestamp="1600725279873">
+    <state x="470" y="118" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1600952764537" />
+    <state width="1323" height="153" key="GridCell.Tab.0.bottom" timestamp="1600983557757">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1323" height="148" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1600725279873" />
+    <state width="1323" height="153" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1600983557757" />
     <state width="1877" height="277" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1600113540238" />
-    <state width="1323" height="148" key="GridCell.Tab.0.center" timestamp="1600725279873">
+    <state width="1323" height="153" key="GridCell.Tab.0.center" timestamp="1600983557753">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1323" height="148" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1600725279873" />
+    <state width="1323" height="153" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1600983557753" />
     <state width="1877" height="277" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1600113540238" />
-    <state width="1323" height="148" key="GridCell.Tab.0.left" timestamp="1600725279873">
+    <state width="1323" height="153" key="GridCell.Tab.0.left" timestamp="1600983557753">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1323" height="148" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1600725279873" />
+    <state width="1323" height="153" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1600983557753" />
     <state width="1877" height="277" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1600113540238" />
-    <state width="1323" height="148" key="GridCell.Tab.0.right" timestamp="1600725279873">
+    <state width="1323" height="153" key="GridCell.Tab.0.right" timestamp="1600983557757">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1323" height="148" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1600725279873" />
+    <state width="1323" height="153" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1600983557757" />
     <state width="1877" height="277" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1600113540238" />
     <state width="1323" height="182" key="GridCell.Tab.1.bottom" timestamp="1600719279344">
       <screen x="0" y="0" width="1366" height="728" />
@@ -219,10 +224,10 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state width="1323" height="182" key="GridCell.Tab.1.right/0.0.1366.728@0.0.1366.728" timestamp="1600719279344" />
-    <state x="190" y="0" width="1002" height="711" key="SettingsEditor" timestamp="1600532153561">
+    <state x="190" y="0" width="1002" height="711" key="SettingsEditor" timestamp="1600952770334">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="190" y="0" width="1002" height="711" key="SettingsEditor/0.0.1366.728@0.0.1366.728" timestamp="1600532153561" />
+    <state x="190" y="0" width="1002" height="711" key="SettingsEditor/0.0.1366.728@0.0.1366.728" timestamp="1600952770334" />
     <state x="529" y="269" key="com.intellij.ide.util.TipDialog" timestamp="1600090785707">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -236,18 +241,29 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state width="860" height="216" key="javadoc.popup.new/0.0.1366.728@0.0.1366.728" timestamp="1597990252218" />
-    <state x="65" y="0" key="new project wizard" timestamp="1600456478548">
+    <state x="65" y="0" key="new project wizard" timestamp="1600779862497">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="65" y="0" key="new project wizard/0.0.1366.728@0.0.1366.728" timestamp="1600456478548" />
+    <state x="65" y="0" key="new project wizard/0.0.1366.728@0.0.1366.728" timestamp="1600779862497" />
     <state x="339" y="162" key="run.anything.popup" timestamp="1600644054114">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state x="339" y="162" key="run.anything.popup/0.0.1366.728@0.0.1366.728" timestamp="1600644054114" />
-    <state x="345" y="49" width="675" height="678" key="search.everywhere.popup" timestamp="1600705969412">
+    <state x="345" y="49" width="675" height="678" key="search.everywhere.popup" timestamp="1600893380622">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="345" y="49" width="675" height="678" key="search.everywhere.popup/0.0.1366.728@0.0.1366.728" timestamp="1600705969412" />
+    <state x="345" y="49" width="675" height="678" key="search.everywhere.popup/0.0.1366.728@0.0.1366.728" timestamp="1600893380622" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/Engine/Renderer/GraphicsPipeline/GraphicsPipeline.java</url>
+          <line>76</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Piston$Piston.ic" NAME="Piston Coverage Results" MODIFIED="1600715856781" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">
