@@ -91,13 +91,14 @@ public class CommandBuffers {
                 {
                     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline.getVkGraphicsPipeline());
 
-
-                    LongBuffer offsets = stack.longs(VK_NULL_HANDLE);
-                    LongBuffer buffer = stack.longs(mesh.getVertexBuffer().getPointer());
+                    LongBuffer buffer = stack.longs(mesh.getVertexBuffer().getBuffer());
+                    LongBuffer offsets = stack.longs(0);
 
                     vkCmdBindVertexBuffers(commandBuffer,0,buffer,offsets);
 
-                    vkCmdDraw(commandBuffer, mesh.getVertices().length, 1, 0, 0);
+                    vkCmdBindIndexBuffer(commandBuffer, mesh.getIndexBuffer().getBuffer(),0,VK_INDEX_TYPE_UINT16);
+
+                    vkCmdDrawIndexed(commandBuffer, mesh.getIndices().length, 1, 0, 0,0);
                 }
                 vkCmdEndRenderPass(commandBuffer);
 

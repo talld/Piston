@@ -52,8 +52,10 @@ public class Renderer {
     private static FrameBuffers frameBuffers;
     private static ArrayList<Long> vkframebuffers;
 
-    private static CommandPool commandPool;
-    private static long vkCommandPool;
+    private static CommandPool graphicsCommandPool;
+    private static long vkGraphicsCommandPool;
+    private static CommandPool transferCommandPool;
+    private static long vkTransferCommandPool;
 
     private static CommandBuffers commandBuffers;
     private static ArrayList<VkCommandBuffer> vkCommandBuffers;
@@ -66,9 +68,14 @@ public class Renderer {
     private static int height = 480;
 
     private static final Vertex[] vertices = new Vertex[]{
-            new Vertex(new Vector3f(0.0f, 0.5f, 0.0f), new Vector3f(1.0f, 0.0f, 0.0f)),
-            new Vertex(new Vector3f(0.5f, 0.5f, 0.0f), new Vector3f(0.0f, 1.0f, 0.0f)),
-            new Vertex(new Vector3f(-0.5f, 0.5f, 0.0f), new Vector3f(0.0f, 0.0f, 1.0f)),
+            new Vertex(new Vector3f(-0.5f, -0.5f, 0.0f), new Vector3f(1.0f, 0.0f, 0.0f)),
+            new Vertex(new Vector3f(0.5f, -0.5f, 0.0f), new Vector3f(0.0f, 1.0f, 0.0f)),
+            new Vertex(new Vector3f(0.5f, 0.5f, 0.0f), new Vector3f(0.0f, 0.0f, 1.0f)),
+            new Vertex(new Vector3f(-0.5f, 0.5f, 0.0f), new Vector3f(1.0f, 1.0f, 1.0f)),
+    };
+
+    private static final short[] indices = new short[]{
+            0,1,2,2,3,0
     };
 
     private static Mesh mesh;
@@ -81,7 +88,8 @@ public class Renderer {
         graphicsPipeline = new GraphicsPipeline();
         renderPass = new RenderPass();
         frameBuffers = new FrameBuffers();
-        commandPool = new CommandPool();
+        graphicsCommandPool = new CommandPool();
+        transferCommandPool = new CommandPool();
         commandBuffers = new CommandBuffers();
         renderUpdater = new RenderUpdater();
         sync = new Sync();
@@ -99,12 +107,16 @@ public class Renderer {
         vkSwapchain = swapchain.create(physicalDevice,lDevice,window,VK_NULL_HANDLE);
         swapchainImagesViews = swapchain.createSwapchainImageViews(lDevice);
         vkRenderpass = renderPass.create(lDevice, swapchain);
-        mesh = new Mesh(lDevice);
-        mesh.create(vertices);
         vkGraphicsPipeline = graphicsPipeline.create(lDevice, swapchain, renderPass);
         vkframebuffers = frameBuffers.create(lDevice, swapchain, renderPass);
-        vkCommandPool = commandPool.create(physicalDevice, lDevice);
-                vkCommandBuffers = commandBuffers.create(lDevice,swapchain,vkCommandPool);
+
+        vkGraphicsCommandPool = graphicsCommandPool.create(physicalDevice, lDevice,0);
+        vkTransferCommandPool = transferCommandPool.create(physicalDevice, lDevice,VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
+
+        mesh = new Mesh(lDevice, vkTransferCommandPool, logicalDevice.getGraphicsQueue());
+        mesh.create(vertices, indices);
+
+        vkCommandBuffers = commandBuffers.create(lDevice,swapchain, vkGraphicsCommandPool);
         commandBuffers.record(swapchain,renderPass,graphicsPipeline,frameBuffers,mesh);
         sync.create(lDevice,swapchain , renderUpdater.getMaxFrames());
         renderUpdater.create(logicalDevice,swapchain,commandBuffers,sync);
@@ -113,7 +125,7 @@ public class Renderer {
     public static void resizeWindow(int nWidth, int nHeight){
 
         renderUpdater.destroy();
-        commandPool.destroy(lDevice);
+        graphicsCommandPool.destroy(lDevice);
         frameBuffers.destroy(lDevice);
         graphicsPipeline.destroy(lDevice);
         renderPass.destroy(lDevice);
@@ -128,8 +140,8 @@ public class Renderer {
         vkRenderpass = renderPass.create(lDevice, swapchain);
         vkGraphicsPipeline = graphicsPipeline.create(lDevice, swapchain, renderPass);
         vkframebuffers = frameBuffers.create(lDevice, swapchain, renderPass);
-        vkCommandPool = commandPool.create(physicalDevice, lDevice);
-        vkCommandBuffers = commandBuffers.create(lDevice,swapchain,vkCommandPool);
+        vkGraphicsCommandPool = graphicsCommandPool.create(physicalDevice, lDevice,0);
+        vkCommandBuffers = commandBuffers.create(lDevice,swapchain, vkGraphicsCommandPool);
         commandBuffers.record(swapchain,renderPass,graphicsPipeline,frameBuffers,mesh);
 
         renderUpdater.create(logicalDevice,swapchain,commandBuffers,sync);
@@ -139,9 +151,13 @@ public class Renderer {
 
         renderUpdater.destroy();
 
+        mesh.destroy();
+
         sync.destroy(lDevice);
 
-        commandPool.destroy(lDevice);
+        graphicsCommandPool.destroy(lDevice);
+
+        transferCommandPool.destroy(lDevice);
 
         frameBuffers.destroy(lDevice);
 

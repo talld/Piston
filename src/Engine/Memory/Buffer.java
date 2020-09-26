@@ -1,6 +1,5 @@
 package Engine.Memory;
 
-import Engine.Renderer.PhysicalDevice.PhysicalDevice;
 import org.lwjgl.vulkan.VkDevice;
 import org.lwjgl.vulkan.VkPhysicalDevice;
 
@@ -23,11 +22,21 @@ public class Buffer {
     }
 
     public void bind(long memory){
+        vkBindBufferMemory(lDevice,buffer,memory,0);
         this.memory = memory;
+    }
+
+    public void unbind(){
+        vkFreeMemory(lDevice, memory, null);
+        this.memory = VK_NULL_HANDLE;
+    }
+
+
+    public void bind(){
         vkBindBufferMemory(lDevice,buffer,memory,0);
     }
 
-    public long getPointer(){
+    public long getBuffer(){
         return buffer;
     }
 
@@ -43,14 +52,17 @@ public class Buffer {
         return size;
     }
 
+    public long setMemory(long memory) {
+        return this.memory = memory;
+    }
+
     public long getMemory() {
         return memory;
     }
 
-    public void destroy() throws Throwable {
+    public void destroy(){
         vkDestroyBuffer(lDevice, buffer, null);
         vkFreeMemory(lDevice, memory, null);
-        this.finalize();
     }
 
 }

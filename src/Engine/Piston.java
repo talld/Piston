@@ -13,7 +13,7 @@ public class Piston {
     private Game game;
     public boolean end = false;
 
-    public Piston() throws InterruptedException {
+    public Piston() throws Throwable {
         try(MemoryStack stack = MemoryStack.stackPush()) {
             init();
             gameLoop();
@@ -70,8 +70,7 @@ public class Piston {
         }
     }
 
-    public void cleanUp()
-    {
+    public void cleanUp(){
         Renderer.cleanUp();
     }
 
@@ -85,7 +84,7 @@ public class Piston {
         Renderer.render();
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws Throwable {
 
         new Piston();
     }

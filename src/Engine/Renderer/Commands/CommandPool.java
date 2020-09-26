@@ -20,7 +20,7 @@ public class CommandPool {
 
     }
 
-    public long create(PhysicalDevice pDevice, VkDevice lDevice){
+    public long create(PhysicalDevice pDevice, VkDevice lDevice, int flags){
         try(MemoryStack stack = stackPush()){
 
             QueueFamilyIndices queueFamilyIndices = pDevice.getQueueFamilyIndices();
@@ -28,7 +28,7 @@ public class CommandPool {
             VkCommandPoolCreateInfo commandPoolCreateInfo = VkCommandPoolCreateInfo.callocStack(stack)
                     .sType(VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO)
                     .queueFamilyIndex(queueFamilyIndices.getGraphicsFamilyIndex())
-                    .flags(0);
+                    .flags(flags);
 
             LongBuffer pCommandPool = stack.longs(VK_NULL_HANDLE);
 
