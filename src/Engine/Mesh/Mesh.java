@@ -61,7 +61,7 @@ public class Mesh {
 
             vkMapMemory(lDevice, stagingBuffer.getMemory(), 0, stagingBuffer.getSize(), 0, data);
             {
-                MemoryUtillities.copyIndices(data.getByteBuffer(0, (int) stagingBuffer.getSize()), vertices);
+                MemoryUtillities.memCopy(data.getByteBuffer(0, (int) stagingBuffer.getSize()), vertices);
             }
             vkUnmapMemory(lDevice, stagingBuffer.getMemory());
 
@@ -83,7 +83,7 @@ public class Mesh {
 
             vkMapMemory(lDevice, stagingBuffer.getMemory(), 0, stagingBuffer.getSize(), 0, data);
             {
-                MemoryUtillities.copyIndices(data.getByteBuffer(0, (int) stagingBuffer.getSize()), indices);
+                MemoryUtillities.memCopy(   data.getByteBuffer(0, (int) stagingBuffer.getSize()), indices);
             }
             vkUnmapMemory(lDevice, stagingBuffer.getMemory());
 

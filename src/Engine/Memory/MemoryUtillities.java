@@ -130,7 +130,7 @@ public class MemoryUtillities {
         }
     }
 
-    public static void copyIndices(ByteBuffer buffer, short[] indices) {
+    public static void memCopy(ByteBuffer buffer, short[] indices) {
         for(short index : indices) {
             buffer.putShort(index);
         }
