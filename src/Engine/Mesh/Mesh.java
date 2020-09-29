@@ -1,7 +1,9 @@
 package Engine.Mesh;
 
 import Engine.Geometry.Vertex;
-import Engine.Memory.Buffer;
+import Engine.Memory.Buffers.GroupBuffer.BufferDescriptor;
+import Engine.Memory.Buffers.GroupBuffer.GroupBuffer;
+import Engine.Memory.Buffers.SingleBuffer.Buffer;
 import Engine.Memory.MemoryUtillities;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
@@ -23,12 +25,16 @@ public class Mesh {
     private long verticesSize;
     private Buffer vertexBuffer;
 
-    private int indicesSize;
+    private long indicesSize;
     private Buffer indexBuffer;
 
     private VkQueue transferQueue;
     private long transferPool;
 
+    private long indexOffset;
+    private long vertexOffset;
+
+    private Integer ID;
 
     public Mesh(VkDevice lDevice, long transferPool, VkQueue transferQueue){
         this.lDevice = lDevice;
@@ -42,7 +48,50 @@ public class Mesh {
         this.indices = indices;
         this.verticesSize = vertices.length * (6*Float.BYTES);
         this.indicesSize = indices.length * Short.BYTES;
+        System.out.println(Short.BYTES);
         this.create();
+    }
+
+    public GroupBuffer create(Vertex[] vertices, short[] indices, GroupBuffer groupBuffer, Integer ID){
+        this.vertices = vertices;
+        this.indices = indices;
+        this.verticesSize = vertices.length * (6*Float.BYTES);
+        this.indicesSize = indices.length * Short.BYTES;
+        this.ID = ID;
+        return this.create(groupBuffer);
+    }
+
+
+    public GroupBuffer create(GroupBuffer groupBuffer) {
+        try (MemoryStack stack = stackPush()) {
+            BufferDescriptor verticesBuffer =  new BufferDescriptor(verticesSize);
+            BufferDescriptor indicesBuffer =  new BufferDescriptor(indicesSize);
+            groupBuffer.addBufferDescriptor(ID,"vert",verticesBuffer);
+            vertexOffset = groupBuffer.getBufferDescriptor(ID,"vert").getOffset();
+            groupBuffer.addBufferDescriptor(ID,"ind",indicesBuffer);
+            indexOffset = groupBuffer.getBufferDescriptor(ID,"ind").getOffset();
+
+        }
+        return groupBuffer;
+    }
+
+    public void push(GroupBuffer groupBuffer){
+
+        try(MemoryStack stack = stackPush()) {
+            PointerBuffer data = stack.mallocPointer(1);
+
+            vkMapMemory(lDevice, groupBuffer.getStagingMemory(), groupBuffer.getBufferDescriptor(ID, "vert").getOffset(), verticesSize, 0, data);
+            {
+                MemoryUtillities.memCopy(data.getByteBuffer(0, (int) verticesSize), vertices);
+            }
+            vkUnmapMemory(lDevice, groupBuffer.getStagingMemory());
+
+            vkMapMemory(lDevice, groupBuffer.getStagingMemory(), groupBuffer.getBufferDescriptor(ID, "ind").getOffset(), indicesSize, 0, data);
+            {
+                MemoryUtillities.memCopy(data.getByteBuffer(0, (int) indicesSize), indices);
+            }
+            vkUnmapMemory(lDevice, groupBuffer.getStagingMemory());
+        }
     }
 
     public void create(){
@@ -65,7 +114,7 @@ public class Mesh {
             }
             vkUnmapMemory(lDevice, stagingBuffer.getMemory());
 
-            MemoryUtillities.copyBuffer(transferQueue, transferPool, stagingBuffer, vertexBuffer, verticesSize);
+            MemoryUtillities.copyBuffer(transferQueue, transferPool, stagingBuffer, vertexBuffer);
 
             stagingBuffer.destroy();
 
@@ -78,9 +127,6 @@ public class Mesh {
             stagingBuffer.bind();
             indexBuffer.bind();
 
-
-            data = stack.mallocPointer(1);
-
             vkMapMemory(lDevice, stagingBuffer.getMemory(), 0, stagingBuffer.getSize(), 0, data);
             {
                 MemoryUtillities.memCopy(   data.getByteBuffer(0, (int) stagingBuffer.getSize()), indices);
@@ -88,7 +134,7 @@ public class Mesh {
             vkUnmapMemory(lDevice, stagingBuffer.getMemory());
 
 
-            MemoryUtillities.copyBuffer(transferQueue, transferPool, stagingBuffer, indexBuffer, indicesSize);
+            MemoryUtillities.copyBuffer(transferQueue, transferPool, stagingBuffer, indexBuffer);
 
 
             stagingBuffer.destroy();
@@ -103,6 +149,10 @@ public class Mesh {
         return vertexBuffer;
     }
 
+    public long getVertexOffset(){
+        return vertexOffset;
+    }
+
     public short[] getIndices(){
         return indices;
     }
@@ -111,8 +161,12 @@ public class Mesh {
         return indexBuffer;
     }
 
+    public long getIndexOffset(){
+        return indexOffset;
+    }
+
     public void destroy(){
-        vertexBuffer.destroy();
-        indexBuffer.destroy();
+        //vertexBuffer.destroy();
+        //indexBuffer.destroy();
     }
 }

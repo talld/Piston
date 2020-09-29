@@ -1,4 +1,4 @@
-package Engine.Memory;
+package Engine.Memory.Buffers.SingleBuffer;
 
 import org.lwjgl.vulkan.VkDevice;
 import org.lwjgl.vulkan.VkPhysicalDevice;

@@ -1,6 +1,7 @@
 package Engine.Renderer;
 
 import Engine.Geometry.Vertex;
+import Engine.Memory.Buffers.GroupBuffer.GroupBuffer;
 import Engine.Mesh.Mesh;
 import Engine.Renderer.Commands.CommandBuffers;
 import Engine.Renderer.Commands.CommandPool;
@@ -68,15 +69,35 @@ public class Renderer {
     private static int height = 480;
 
     private static final Vertex[] vertices = new Vertex[]{
-            new Vertex(new Vector3f(-0.5f, -0.5f, 0.0f), new Vector3f(1.0f, 0.0f, 0.0f)),
-            new Vertex(new Vector3f(0.5f, -0.5f, 0.0f), new Vector3f(0.0f, 1.0f, 0.0f)),
-            new Vertex(new Vector3f(0.5f, 0.5f, 0.0f), new Vector3f(0.0f, 0.0f, 1.0f)),
-            new Vertex(new Vector3f(-0.5f, 0.5f, 0.0f), new Vector3f(1.0f, 1.0f, 1.0f)),
+            new Vertex(new Vector3f(-0.75f, -0.5f, 0.0f), new Vector3f(1.0f, 0.0f, 0.0f)),
+            new Vertex(new Vector3f(-0.5f, 0f, 0.0f), new Vector3f(0.0f, 1.0f, 0.0f)),
+            new Vertex(new Vector3f(-1f, 0f, 0.0f), new Vector3f(0.0f, 0.0f, 1.0f)),
     };
 
     private static final short[] indices = new short[]{
-            0,1,2,2,3,0
+            0,1,2
     };
+
+    private static final Vertex[] vertices2 = new Vertex[]{
+            new Vertex(new Vector3f(-0.5f, -0.5f, 0.0f), new Vector3f(1.0f, 0.0f, 0.0f)),
+            new Vertex(new Vector3f(-0.5f, 0.5f, 0.0f), new Vector3f(0.0f, 1.0f, 0.0f)),
+            new Vertex(new Vector3f(-1f, 0.5f, 0.0f), new Vector3f(0.0f, 0.0f, 1.0f)),
+    };
+
+    private static final short[] indices2 = new short[]{
+            0,1,2
+    };
+
+    private static final Vertex[] vertices3 = new Vertex[]{
+            new Vertex(new Vector3f(0.75f, -0.5f, 0.0f), new Vector3f(1.0f, 0.0f, 0.0f)),
+            new Vertex(new Vector3f(1f, 0f, 0.0f), new Vector3f(0.0f, 1.0f, 0.0f)),
+            new Vertex(new Vector3f(0.5f, 0f, 0.0f), new Vector3f(0.0f, 0.0f, 1.0f)),
+    };
+
+    private static final short[] indices3 = new short[]{
+            0,1,2
+    };
+
 
     private static Mesh mesh;
 
@@ -113,11 +134,31 @@ public class Renderer {
         vkGraphicsCommandPool = graphicsCommandPool.create(physicalDevice, lDevice,0);
         vkTransferCommandPool = transferCommandPool.create(physicalDevice, lDevice,VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
 
+        GroupBuffer groupBuffer = new GroupBuffer(pDevice, lDevice,VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
         mesh = new Mesh(lDevice, vkTransferCommandPool, logicalDevice.getGraphicsQueue());
-        mesh.create(vertices, indices);
+        groupBuffer = mesh.create(vertices, indices, groupBuffer,1);
+
+        Mesh mesh2 = new Mesh(lDevice, vkTransferCommandPool, logicalDevice.getGraphicsQueue());
+        groupBuffer = mesh2.create(vertices2, indices2, groupBuffer,2);
+
+        Mesh mesh3 = new Mesh(lDevice, vkTransferCommandPool, logicalDevice.getGraphicsQueue());
+        groupBuffer = mesh3.create(vertices3, indices3, groupBuffer,3);
+
+
+        groupBuffer.set(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        mesh.push(groupBuffer);
+        mesh2.push(groupBuffer);
+        mesh3.push(groupBuffer);
+        groupBuffer.copy(vkTransferCommandPool, logicalDevice.getGraphicsQueue());
+        ArrayList<Mesh> meshes = new ArrayList<Mesh>();
+        meshes.add(mesh);
+        meshes.add(mesh2);
+        meshes.add(mesh3);
 
         vkCommandBuffers = commandBuffers.create(lDevice,swapchain, vkGraphicsCommandPool);
-        commandBuffers.record(swapchain,renderPass,graphicsPipeline,frameBuffers,mesh);
+        commandBuffers.record(swapchain,renderPass,graphicsPipeline,frameBuffers,groupBuffer , meshes);
+
         sync.create(lDevice,swapchain , renderUpdater.getMaxFrames());
         renderUpdater.create(logicalDevice,swapchain,commandBuffers,sync);
     }
@@ -142,7 +183,7 @@ public class Renderer {
         vkframebuffers = frameBuffers.create(lDevice, swapchain, renderPass);
         vkGraphicsCommandPool = graphicsCommandPool.create(physicalDevice, lDevice,0);
         vkCommandBuffers = commandBuffers.create(lDevice,swapchain, vkGraphicsCommandPool);
-        commandBuffers.record(swapchain,renderPass,graphicsPipeline,frameBuffers,mesh);
+       // commandBuffers.record(swapchain,renderPass,graphicsPipeline,frameBuffers,mesh);
 
         renderUpdater.create(logicalDevice,swapchain,commandBuffers,sync);
     }
