@@ -1,6 +1,5 @@
 package Engine.Renderer.Commands;
 
-import Engine.Memory.Buffers.GroupBuffer.GroupBuffer;
 import Engine.Mesh.Mesh;
 import Engine.Renderer.FrameBuffer.FrameBuffers;
 import Engine.Renderer.GraphicsPipeline.GraphicsPipeline;
@@ -55,7 +54,7 @@ public class CommandBuffers {
         return commandBuffers;
     }
 
-    public void record(Swapchain swapchain, RenderPass renderPass, GraphicsPipeline graphicsPipeline, FrameBuffers frameBuffers, GroupBuffer groupBuffer, ArrayList<Mesh> meshes){
+    public void record(Swapchain swapchain, RenderPass renderPass, GraphicsPipeline graphicsPipeline, FrameBuffers frameBuffers, ArrayList<Mesh> meshes){
 
         try(MemoryStack stack = stackPush()){
 
@@ -66,6 +65,7 @@ public class CommandBuffers {
 
             renderArea.offset(VkOffset2D.callocStack(stack).set(0, 0));
             renderArea.extent(swapchain.getSwapchainExtent());
+
             //background color
             VkClearValue.Buffer clearValues = VkClearValue.callocStack(1, stack);
             clearValues.color().float32(stack.floats(0.0f, 0.0f, 0.0f, 1.0f));
@@ -91,15 +91,15 @@ public class CommandBuffers {
 
                 vkCmdBeginRenderPass(commandBuffer, renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
                 {
-                    LongBuffer vertexBuffer = stack.longs(groupBuffer.getBuffer());
+
                     for(Mesh mesh : meshes) {
-                        LongBuffer offsets = stack.longs(mesh.getVertexOffset());
+                        LongBuffer offsets = stack.longs(0);
+                        LongBuffer vertexBuffer = stack.longs(mesh.getVertexBuffer().getBuffer());
+                        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline.getVkGraphicsPipeline());
 
                         vkCmdBindVertexBuffers(commandBuffer, 0, vertexBuffer, offsets);
 
-                        vkCmdBindIndexBuffer(commandBuffer, groupBuffer.getBuffer(), mesh.getIndexOffset(), VK_INDEX_TYPE_UINT16);
-
-                        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline.getVkGraphicsPipeline());
+                        vkCmdBindIndexBuffer(commandBuffer, mesh.getIndexBuffer().getBuffer(), 0, VK_INDEX_TYPE_UINT16);
 
                         vkCmdDrawIndexed(commandBuffer, mesh.getIndices().length, 1, 0, 0, 0);
                     }

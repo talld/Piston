@@ -36,7 +36,6 @@ public class Window {
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
         window = glfwCreateWindow(windowWidth,windowHeight,title,NULL,NULL);
-
     }
 
     public long createSurface(VkInstance instance){

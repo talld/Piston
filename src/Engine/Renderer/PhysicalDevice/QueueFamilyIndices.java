@@ -1,5 +1,6 @@
 package Engine.Renderer.PhysicalDevice;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -9,10 +10,13 @@ public class QueueFamilyIndices {
     private int presentationFamilyIndex;
     private int computeFamilyIndex;
 
+    private ArrayList<Integer> transferQueues;
+
     public QueueFamilyIndices() {
         this.graphicsFamilyIndex = -1;
         this.presentationFamilyIndex = -1;
         this.computeFamilyIndex = -1;
+        this.transferQueues = new ArrayList<Integer>();
     }
 
     public boolean validate(){
@@ -58,5 +62,13 @@ public class QueueFamilyIndices {
 
     public int getComputeFamilyIndex() {
         return computeFamilyIndex;
+    }
+
+    public void addTransferQueue(int q){
+        transferQueues.add(q);
+    }
+
+    public ArrayList<Integer> getTransferQueues() {
+        return transferQueues;
     }
 }

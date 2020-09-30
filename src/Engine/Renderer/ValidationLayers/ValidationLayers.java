@@ -54,13 +54,17 @@ public class ValidationLayers {
         return buffer.rewind();
     }
 
-    static int debugCallback(int messageSeverity, int messageType, long pCallbackData, long pUserData) {
+    public static int debugCallback(int messageSeverity, int messageType, long pCallbackData, long pUserData) {
 
         VkDebugUtilsMessengerCallbackDataEXT callbackData = VkDebugUtilsMessengerCallbackDataEXT.create(pCallbackData);
 
         System.err.println("Validation layer: " + callbackData.pMessageString());
 
         return VK_FALSE;
+    }
+
+    public static void memoryDebugCallback(long allocator, int memoryType, long memory, long size){
+        System.out.println("Device allocation: " + size + "bytes");
     }
 
     public static void setupDebugMessenger() {
@@ -126,5 +130,6 @@ public class ValidationLayers {
             return availableLayerNames.containsAll(VALIDATION_LAYERS);
         }
     }
+
 
 }

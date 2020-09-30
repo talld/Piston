@@ -24,6 +24,7 @@ public class RenderPass {
 
             VkAttachmentDescription.Buffer colourAttachmentDescriptions = VkAttachmentDescription.callocStack(1,stack)
                     .format(swapchain.getImageFormat())
+                    .flags(VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT)
                     .samples(VK_SAMPLE_COUNT_1_BIT)
                     .loadOp(VK_ATTACHMENT_LOAD_OP_CLEAR)
                     .storeOp(VK_ATTACHMENT_STORE_OP_STORE)
@@ -41,19 +42,34 @@ public class RenderPass {
                     .pColorAttachments(colourAttachmentReference)
                     .colorAttachmentCount(1);
 
-            VkSubpassDependency.Buffer subpassDependency = VkSubpassDependency.callocStack(1, stack)
-                .srcSubpass(VK_SUBPASS_EXTERNAL)
-                .dstSubpass(0)
-                .srcStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
-                .srcAccessMask(0)
-                .dstStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
-                .dstAccessMask(VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
+            //create transfer windows between dependent points in the renderpass (in(VK_IMAGE_LAYOUT_UNDEFINED) - subpass1(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) - out(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR))
+
+            VkSubpassDependency.Buffer subpassDependencys = VkSubpassDependency.callocStack(2, stack);
+
+            VkSubpassDependency windowDependency = subpassDependencys.get(0)
+                    .srcStageMask(VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT) // start of window (stage)
+                    .srcAccessMask(VK_ACCESS_MEMORY_READ_BIT) // start of window (point in stage)
+                    .srcSubpass(VK_SUBPASS_EXTERNAL) //in
+                    .dstSubpass(0)//subpass1
+                    .dstStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT) //end of window
+                    .dstAccessMask(VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT) // end of window (point in stage)
+                    .dependencyFlags(0);
+
+            VkSubpassDependency pipelineDependency = subpassDependencys.get(1)
+                    .srcStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
+                    .srcAccessMask(VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
+                    .srcSubpass(0) //subpass1
+                    .dstSubpass(VK_SUBPASS_EXTERNAL) //out
+                    .dstStageMask(VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT)
+                    .dstAccessMask(VK_ACCESS_MEMORY_READ_BIT)
+                    .dependencyFlags(0);
+
 
             VkRenderPassCreateInfo renderPassCreateInfo = VkRenderPassCreateInfo.callocStack(stack)
                     .sType(VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO)
                     .pAttachments(colourAttachmentDescriptions)
                     .pSubpasses(subpassDescriptions)
-                    .pDependencies(subpassDependency);
+                    .pDependencies(subpassDependencys);
 
             LongBuffer pRenderPass = stack.mallocLong(1);
 

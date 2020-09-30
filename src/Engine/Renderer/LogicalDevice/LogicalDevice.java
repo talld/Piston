@@ -66,13 +66,18 @@ public class LogicalDevice {
 
             PointerBuffer pQueue = stack.pointers(VK_NULL_HANDLE);
 
-            vkGetDeviceQueue(lDevice,device.getQueueFamilyIndices().getGraphicsFamilyIndex(), 0, pQueue);
+
+            vkGetDeviceQueue(lDevice,queueFamilyIndices.getGraphicsFamilyIndex(), 0, pQueue);
             graphicsQueue = new VkQueue(pQueue.get(0), lDevice);
 
-
-
-            vkGetDeviceQueue(lDevice, device.getQueueFamilyIndices().getPresentationFamilyIndex(), 0, pQueue);
+            vkGetDeviceQueue(lDevice, queueFamilyIndices.getPresentationFamilyIndex(), 0, pQueue);
             presentQueue = new VkQueue(pQueue.get(0), lDevice);
+
+            for(Integer i : queueFamilyIndices.getTransferQueues()){
+                if(i != queueFamilyIndices.getGraphicsFamilyIndex() && i != queueFamilyIndices.getComputeFamilyIndex()){
+                    //TODO transfer queue creation management
+                }
+            }
 
             return lDevice;
         }

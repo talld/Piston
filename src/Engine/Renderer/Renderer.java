@@ -1,7 +1,7 @@
 package Engine.Renderer;
 
 import Engine.Geometry.Vertex;
-import Engine.Memory.Buffers.GroupBuffer.GroupBuffer;
+import Engine.Memory.MemoryUtillities;
 import Engine.Mesh.Mesh;
 import Engine.Renderer.Commands.CommandBuffers;
 import Engine.Renderer.Commands.CommandPool;
@@ -18,7 +18,6 @@ import Engine.Renderer.ValidationLayers.ValidationLayers;
 import Engine.Renderer.Window.Window;
 import org.joml.Vector3f;
 import org.lwjgl.vulkan.*;
-
 import java.util.ArrayList;
 
 import static org.lwjgl.glfw.GLFW.glfwInit;
@@ -97,9 +96,7 @@ public class Renderer {
     private static final short[] indices3 = new short[]{
             0,1,2
     };
-
-
-    private static Mesh mesh;
+    private static ArrayList<Mesh> meshes;
 
     public Renderer() {
         instance = new Instance();
@@ -131,34 +128,28 @@ public class Renderer {
         vkGraphicsPipeline = graphicsPipeline.create(lDevice, swapchain, renderPass);
         vkframebuffers = frameBuffers.create(lDevice, swapchain, renderPass);
 
+        MemoryUtillities.init(vkInstance, pDevice, lDevice);
+
         vkGraphicsCommandPool = graphicsCommandPool.create(physicalDevice, lDevice,0);
         vkTransferCommandPool = transferCommandPool.create(physicalDevice, lDevice,VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
 
-        GroupBuffer groupBuffer = new GroupBuffer(pDevice, lDevice,VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-        mesh = new Mesh(lDevice, vkTransferCommandPool, logicalDevice.getGraphicsQueue());
-        groupBuffer = mesh.create(vertices, indices, groupBuffer,1);
+        Mesh mesh = new Mesh(lDevice, vkTransferCommandPool, logicalDevice.getGraphicsQueue());
+        mesh.create(vertices, indices);
 
         Mesh mesh2 = new Mesh(lDevice, vkTransferCommandPool, logicalDevice.getGraphicsQueue());
-        groupBuffer = mesh2.create(vertices2, indices2, groupBuffer,2);
+        mesh2.create(vertices2, indices2);
 
         Mesh mesh3 = new Mesh(lDevice, vkTransferCommandPool, logicalDevice.getGraphicsQueue());
-        groupBuffer = mesh3.create(vertices3, indices3, groupBuffer,3);
+        mesh3.create(vertices3, indices3);
 
-
-        groupBuffer.set(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        mesh.push(groupBuffer);
-        mesh2.push(groupBuffer);
-        mesh3.push(groupBuffer);
-        groupBuffer.copy(vkTransferCommandPool, logicalDevice.getGraphicsQueue());
-        ArrayList<Mesh> meshes = new ArrayList<Mesh>();
+        meshes = new ArrayList<Mesh>();
         meshes.add(mesh);
         meshes.add(mesh2);
         meshes.add(mesh3);
 
         vkCommandBuffers = commandBuffers.create(lDevice,swapchain, vkGraphicsCommandPool);
-        commandBuffers.record(swapchain,renderPass,graphicsPipeline,frameBuffers,groupBuffer , meshes);
-
+        commandBuffers.record(swapchain,renderPass,graphicsPipeline,frameBuffers, meshes);
         sync.create(lDevice,swapchain , renderUpdater.getMaxFrames());
         renderUpdater.create(logicalDevice,swapchain,commandBuffers,sync);
     }
@@ -183,7 +174,7 @@ public class Renderer {
         vkframebuffers = frameBuffers.create(lDevice, swapchain, renderPass);
         vkGraphicsCommandPool = graphicsCommandPool.create(physicalDevice, lDevice,0);
         vkCommandBuffers = commandBuffers.create(lDevice,swapchain, vkGraphicsCommandPool);
-       // commandBuffers.record(swapchain,renderPass,graphicsPipeline,frameBuffers,mesh);
+        commandBuffers.record(swapchain,renderPass,graphicsPipeline,frameBuffers,meshes);
 
         renderUpdater.create(logicalDevice,swapchain,commandBuffers,sync);
     }
@@ -192,13 +183,17 @@ public class Renderer {
 
         renderUpdater.destroy();
 
-        mesh.destroy();
+        for(Mesh mesh : meshes){
+            mesh.destroy();
+        }
 
         sync.destroy(lDevice);
 
         graphicsCommandPool.destroy(lDevice);
 
         transferCommandPool.destroy(lDevice);
+
+        MemoryUtillities.destroy();
 
         frameBuffers.destroy(lDevice);
 
@@ -234,10 +229,10 @@ public class Renderer {
 
     public static void update() {
         window.update();
-
     }
 
     public static void render(){
+
         renderUpdater.update();
     }
 

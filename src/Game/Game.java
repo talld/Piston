@@ -17,7 +17,7 @@ public class Game {
     public void input(){
 
         if(Input.getPressed(GLFW_KEY_E) && !resize){
-            renderer.resizeWindow(1024,768);
+            Renderer.resizeWindow(1024,768);
             resize = true;
         }
         Input.update();

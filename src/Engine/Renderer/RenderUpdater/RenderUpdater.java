@@ -58,9 +58,7 @@ public class RenderUpdater {
 
         try(MemoryStack stack = stackPush()){
             vkWaitForFences(lDevice, sync.getInFlightFence(currentFrame), true, Integer.MAX_VALUE);
-
             IntBuffer pImageIndex = stack.mallocInt(1);
-
             vkAcquireNextImageKHR(lDevice, vkSwapchain, Integer.MAX_VALUE, sync.getImageAvailableSemaphore(currentFrame), VK_NULL_HANDLE, pImageIndex);
 
             int imageIndex = pImageIndex.get(0);

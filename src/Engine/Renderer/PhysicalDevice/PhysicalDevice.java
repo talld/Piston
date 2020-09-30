@@ -140,6 +140,10 @@ public class PhysicalDevice {
 
             for (int i = 0; i < queueFamilies.capacity(); i++) {
 
+                if ((queueFamilies.get(i).queueFlags() & VK_QUEUE_TRANSFER_BIT)==VK_QUEUE_TRANSFER_BIT){
+                    queueFamilyIndices.addTransferQueue(i);
+                }
+
                 if ((queueFamilies.get(i).queueFlags() & VK_QUEUE_GRAPHICS_BIT)==VK_QUEUE_GRAPHICS_BIT && !graphicsQueueFound) {
                     queueFamilyIndices.setGraphicsFamilyIndex(i);
                     graphicsQueueFound = true;
