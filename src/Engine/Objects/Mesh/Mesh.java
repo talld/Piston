@@ -1,4 +1,4 @@
-package Engine.Mesh;
+package Engine.Objects.Mesh;
 
 import Engine.Geometry.Vertex;
 import Engine.Memory.Buffer.Buffer;
@@ -7,7 +7,6 @@ import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkDevice;
 import org.lwjgl.vulkan.VkQueue;
-import org.lwjgl.util.vma.*;
 
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.util.vma.Vma.*;

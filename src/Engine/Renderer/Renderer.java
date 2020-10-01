@@ -2,9 +2,10 @@ package Engine.Renderer;
 
 import Engine.Geometry.Vertex;
 import Engine.Memory.MemoryUtillities;
-import Engine.Mesh.Mesh;
+import Engine.Objects.Mesh.Mesh;
 import Engine.Renderer.Commands.CommandBuffers;
 import Engine.Renderer.Commands.CommandPool;
+import Engine.Renderer.DescriptorSet.DescriptorSetLayout;
 import Engine.Renderer.FrameBuffer.FrameBuffers;
 import Engine.Renderer.GraphicsPipeline.GraphicsPipeline;
 import Engine.Renderer.Instance.Instance;
@@ -46,6 +47,9 @@ public class Renderer {
     private static RenderPass renderPass;
     private static long vkRenderpass;
 
+    private static DescriptorSetLayout descriptorSetLayout;
+    private static long vkDescriptorSetLayout;
+
     private static GraphicsPipeline graphicsPipeline;
     private static long vkGraphicsPipeline;
 
@@ -54,6 +58,7 @@ public class Renderer {
 
     private static CommandPool graphicsCommandPool;
     private static long vkGraphicsCommandPool;
+
     private static CommandPool transferCommandPool;
     private static long vkTransferCommandPool;
 
@@ -103,6 +108,7 @@ public class Renderer {
         logicalDevice = new LogicalDevice();
         physicalDevice = new PhysicalDevice();
         swapchain = new Swapchain();
+        descriptorSetLayout = new DescriptorSetLayout();
         graphicsPipeline = new GraphicsPipeline();
         renderPass = new RenderPass();
         frameBuffers = new FrameBuffers();
@@ -125,7 +131,8 @@ public class Renderer {
         vkSwapchain = swapchain.create(physicalDevice,lDevice,window,VK_NULL_HANDLE);
         swapchainImagesViews = swapchain.createSwapchainImageViews(lDevice);
         vkRenderpass = renderPass.create(lDevice, swapchain);
-        vkGraphicsPipeline = graphicsPipeline.create(lDevice, swapchain, renderPass);
+        vkDescriptorSetLayout = descriptorSetLayout.create(lDevice);
+        vkGraphicsPipeline = graphicsPipeline.create(lDevice, swapchain, renderPass, vkDescriptorSetLayout);
         vkframebuffers = frameBuffers.create(lDevice, swapchain, renderPass);
 
         MemoryUtillities.init(vkInstance, pDevice, lDevice);
@@ -170,7 +177,7 @@ public class Renderer {
         vkSwapchain = swapchain.create(physicalDevice,lDevice,window,VK_NULL_HANDLE);
         swapchainImagesViews = swapchain.createSwapchainImageViews(lDevice);
         vkRenderpass = renderPass.create(lDevice, swapchain);
-        vkGraphicsPipeline = graphicsPipeline.create(lDevice, swapchain, renderPass);
+        vkGraphicsPipeline = graphicsPipeline.create(lDevice, swapchain, renderPass,vkDescriptorSetLayout);
         vkframebuffers = frameBuffers.create(lDevice, swapchain, renderPass);
         vkGraphicsCommandPool = graphicsCommandPool.create(physicalDevice, lDevice,0);
         vkCommandBuffers = commandBuffers.create(lDevice,swapchain, vkGraphicsCommandPool);
@@ -198,6 +205,8 @@ public class Renderer {
         frameBuffers.destroy(lDevice);
 
         graphicsPipeline.destroy(lDevice);
+
+        descriptorSetLayout.destroy(lDevice);
 
         renderPass.destroy(lDevice);
 

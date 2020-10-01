@@ -1,6 +1,6 @@
 package Engine.Renderer.Commands;
 
-import Engine.Mesh.Mesh;
+import Engine.Objects.Mesh.Mesh;
 import Engine.Renderer.FrameBuffer.FrameBuffers;
 import Engine.Renderer.GraphicsPipeline.GraphicsPipeline;
 import Engine.Renderer.RenderPass.RenderPass;

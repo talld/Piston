@@ -60,6 +60,10 @@ public class Window {
         }
     }
 
+    public void setIcon(){
+
+    }
+
     public void update(){
         glfwPollEvents();
     }

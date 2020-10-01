@@ -27,7 +27,7 @@ public class GraphicsPipeline {
 
     }
 
-    public long create(VkDevice lDevice, Swapchain swapchain, RenderPass renderPass){
+    public long create(VkDevice lDevice, Swapchain swapchain, RenderPass renderPass, long descriptorSet){
 
         try(MemoryStack stack = stackPush()){
 
@@ -123,8 +123,10 @@ public class GraphicsPipeline {
                     .pAttachments(colorBlendAttachment)
                     .blendConstants(stack.floats(0.0f, 0.0f, 0.0f, 0.0f));
 
-            VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkPipelineLayoutCreateInfo.callocStack(stack);
-            pipelineLayoutInfo.sType(VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO);
+            VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkPipelineLayoutCreateInfo.callocStack(stack)
+                    .sType(VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO)
+                    .pSetLayouts(stack.longs(descriptorSet));
+
 
             LongBuffer pPipelineLayout = stack.longs(VK_NULL_HANDLE);
 
