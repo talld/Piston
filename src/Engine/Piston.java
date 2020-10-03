@@ -56,13 +56,12 @@ public class Piston {
             time = Timer.getTime();
             passedTime+=deltaTime;
             if(passedTime >=Timer.SECOND){
+                Renderer.getWindow().setTitle("FPS: " + frames + " " + passedTime/1000000000 + " ms");
                 passedTime = 0;
-                Renderer.getWindow().setTitle("FPS: " + frames);
                 frames = 0;
             }else{
                 frames++;
             }
-
 
             update();
             render();

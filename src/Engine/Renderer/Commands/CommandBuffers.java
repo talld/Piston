@@ -1,5 +1,6 @@
 package Engine.Renderer.Commands;
 
+import Engine.Objects.Camera.Camera;
 import Engine.Objects.Mesh.Mesh;
 import Engine.Renderer.FrameBuffer.FrameBuffers;
 import Engine.Renderer.GraphicsPipeline.GraphicsPipeline;
@@ -7,6 +8,7 @@ import Engine.Renderer.RenderPass.RenderPass;
 import Engine.Renderer.Swapchain.Swapchain;
 import Engine.Renderer.Utilities.ErrorUtilities;
 import org.lwjgl.PointerBuffer;
+import org.lwjgl.system.CallbackI;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 
@@ -54,7 +56,7 @@ public class CommandBuffers {
         return commandBuffers;
     }
 
-    public void record(Swapchain swapchain, RenderPass renderPass, GraphicsPipeline graphicsPipeline, FrameBuffers frameBuffers, ArrayList<Mesh> meshes){
+    public void record(Swapchain swapchain, RenderPass renderPass, GraphicsPipeline graphicsPipeline, FrameBuffers frameBuffers, ArrayList<Mesh> meshes, Camera camera){
 
         try(MemoryStack stack = stackPush()){
 
@@ -100,6 +102,8 @@ public class CommandBuffers {
                         vkCmdBindVertexBuffers(commandBuffer, 0, vertexBuffer, offsets);
 
                         vkCmdBindIndexBuffer(commandBuffer, mesh.getIndexBuffer().getBuffer(), 0, VK_INDEX_TYPE_UINT16);
+
+                        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline.getVkGraphicsPipelineLayout(),0 ,stack.longs(camera.getDescriptorSets(i)), null);
 
                         vkCmdDrawIndexed(commandBuffer, mesh.getIndices().length, 1, 0, 0, 0);
                     }

@@ -2,7 +2,9 @@ package Engine.Memory;
 
 import Engine.Geometry.Vertex;
 import Engine.Memory.Buffer.Buffer;
+import Engine.Objects.Camera.Camera;
 import Engine.Renderer.ValidationLayers.ValidationLayers;
+import org.joml.Matrix4f;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
@@ -134,4 +136,13 @@ public class MemoryUtillities {
         buffer.rewind();
     }
 
+    public static void memCopy(ByteBuffer buffer, Matrix4f projection, Matrix4f view, Matrix4f model){
+        final int mat4Size = 16 * Float.BYTES;
+
+        projection.get(mat4Size * 2, buffer);
+        view.get(mat4Size, buffer);
+        model.get(0, buffer);
+
+
+    }
 }

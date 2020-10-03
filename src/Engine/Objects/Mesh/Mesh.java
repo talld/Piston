@@ -3,11 +3,19 @@ package Engine.Objects.Mesh;
 import Engine.Geometry.Vertex;
 import Engine.Memory.Buffer.Buffer;
 import Engine.Memory.MemoryUtillities;
+import Engine.Objects.Camera.Camera;
+import Engine.Renderer.Swapchain.Swapchain;
+import Engine.Renderer.Utilities.ErrorUtilities;
+import org.joml.Matrix4f;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.VkDevice;
-import org.lwjgl.vulkan.VkQueue;
+import org.lwjgl.vulkan.*;
 
+import java.nio.LongBuffer;
+import java.util.ArrayList;
+
+import static org.lwjgl.glfw.GLFW.glfwGetTime;
+import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.util.vma.Vma.*;
 import static org.lwjgl.vulkan.VK10.*;
@@ -22,6 +30,7 @@ public class Mesh {
 
     private long verticesSize;
     private long indicesSize;
+    private int uboSize;
 
     private Buffer stagingBuffer;
     private Buffer vertexBuffer;
@@ -30,18 +39,16 @@ public class Mesh {
     private VkQueue transferQueue;
     private long transferPool;
 
-    private Integer ID;
 
-    public Mesh(VkDevice lDevice, long transferPool, VkQueue transferQueue){
+    public Mesh(VkDevice lDevice, long transferPool, VkQueue transferQueue, Swapchain swapchain){
         this.lDevice = lDevice;
         this.transferPool = transferPool;
         this.transferQueue = transferQueue;
     }
 
-    public void create(Vertex[] vertices, short[] indices){
+    public void create(Vertex[] vertices, short[] indices, long descriptorSetLayout, long descriptorPool){
         this.vertices = vertices;
         this.indices = indices;
-
         this.verticesSize = Vertex.getSize()*vertices.length;
         this.indicesSize = Short.BYTES * indices.length;
 
@@ -52,14 +59,14 @@ public class Mesh {
 
             PointerBuffer data = stack.mallocPointer(1);
 
-            vmaMapMemory(stagingBuffer.getAllocator(),stagingBuffer.getAllocation(),data);
+            vmaMapMemory(stagingBuffer.getAllocator(), stagingBuffer.getAllocation(), data);
             {
                 MemoryUtillities.memCopy(data.getByteBuffer(0, (int) verticesSize), vertices);
             }
-            vmaUnmapMemory(stagingBuffer.getAllocator(),stagingBuffer.getAllocation());
+            vmaUnmapMemory(stagingBuffer.getAllocator(), stagingBuffer.getAllocation());
 
             //vertex buffer to copy to
-            vertexBuffer  = MemoryUtillities.createBuffer(verticesSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
+            vertexBuffer = MemoryUtillities.createBuffer(verticesSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
             MemoryUtillities.copyBuffer(transferQueue, transferPool, stagingBuffer, vertexBuffer, verticesSize);
             stagingBuffer.destroy();
 
@@ -68,21 +75,19 @@ public class Mesh {
 
             data = stack.mallocPointer(1);
 
-            vmaMapMemory(stagingBuffer.getAllocator(),stagingBuffer.getAllocation(),data);
+            vmaMapMemory(stagingBuffer.getAllocator(), stagingBuffer.getAllocation(), data);
             {
                 MemoryUtillities.memCopy(data.getByteBuffer(0, (int) indicesSize), indices);
             }
-            vmaUnmapMemory(stagingBuffer.getAllocator(),stagingBuffer.getAllocation());
+            vmaUnmapMemory(stagingBuffer.getAllocator(), stagingBuffer.getAllocation());
 
             //vertex buffer to copy to
-            indexBuffer  = MemoryUtillities.createBuffer(verticesSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
+            indexBuffer = MemoryUtillities.createBuffer(verticesSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
             MemoryUtillities.copyBuffer(transferQueue, transferPool, stagingBuffer, indexBuffer, indicesSize);
             stagingBuffer.destroy();
-
-
-
-        }
+       }
     }
+
 
     public Vertex[] getVertices() {
         return vertices;
@@ -101,6 +106,7 @@ public class Mesh {
     }
 
     public void destroy(){
+
         vertexBuffer.destroy();
         indexBuffer.destroy();
     }

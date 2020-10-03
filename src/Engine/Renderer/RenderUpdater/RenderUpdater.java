@@ -1,5 +1,7 @@
 package Engine.Renderer.RenderUpdater;
 
+import Engine.Objects.Camera.Camera;
+import Engine.Objects.Mesh.Mesh;
 import Engine.Renderer.Commands.CommandBuffers;
 import Engine.Renderer.LogicalDevice.LogicalDevice;
 import Engine.Renderer.Swapchain.Swapchain;
@@ -54,9 +56,11 @@ public class RenderUpdater {
         this.sync = sync;
     }
 
-    public void update(){
+    public void update(ArrayList<Mesh> meshes, Camera camera){
 
         try(MemoryStack stack = stackPush()){
+
+
             vkWaitForFences(lDevice, sync.getInFlightFence(currentFrame), true, Integer.MAX_VALUE);
             IntBuffer pImageIndex = stack.mallocInt(1);
             vkAcquireNextImageKHR(lDevice, vkSwapchain, Integer.MAX_VALUE, sync.getImageAvailableSemaphore(currentFrame), VK_NULL_HANDLE, pImageIndex);
@@ -68,6 +72,8 @@ public class RenderUpdater {
             }
 
             sync.setImagesInFlight(imageIndex,sync.getInFlightFence(currentFrame));
+
+            camera.renderUpdate(imageIndex);
 
             VkSubmitInfo.Buffer submitInfo = VkSubmitInfo.callocStack(1, stackGet())
                     .sType(VK_STRUCTURE_TYPE_SUBMIT_INFO)

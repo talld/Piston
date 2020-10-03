@@ -2,9 +2,11 @@ package Engine.Renderer;
 
 import Engine.Geometry.Vertex;
 import Engine.Memory.MemoryUtillities;
+import Engine.Objects.Camera.Camera;
 import Engine.Objects.Mesh.Mesh;
 import Engine.Renderer.Commands.CommandBuffers;
 import Engine.Renderer.Commands.CommandPool;
+import Engine.Renderer.DescriptorSet.DescriptorPool;
 import Engine.Renderer.DescriptorSet.DescriptorSetLayout;
 import Engine.Renderer.FrameBuffer.FrameBuffers;
 import Engine.Renderer.GraphicsPipeline.GraphicsPipeline;
@@ -19,6 +21,7 @@ import Engine.Renderer.ValidationLayers.ValidationLayers;
 import Engine.Renderer.Window.Window;
 import org.joml.Vector3f;
 import org.lwjgl.vulkan.*;
+
 import java.util.ArrayList;
 
 import static org.lwjgl.glfw.GLFW.glfwInit;
@@ -56,6 +59,9 @@ public class Renderer {
     private static FrameBuffers frameBuffers;
     private static ArrayList<Long> vkframebuffers;
 
+    private static DescriptorPool descriptorPool;
+    private static long vkDescriptorPool;
+
     private static CommandPool graphicsCommandPool;
     private static long vkGraphicsCommandPool;
 
@@ -73,9 +79,9 @@ public class Renderer {
     private static int height = 480;
 
     private static final Vertex[] vertices = new Vertex[]{
-            new Vertex(new Vector3f(-0.75f, -0.5f, 0.0f), new Vector3f(1.0f, 0.0f, 0.0f)),
-            new Vertex(new Vector3f(-0.5f, 0f, 0.0f), new Vector3f(0.0f, 1.0f, 0.0f)),
-            new Vertex(new Vector3f(-1f, 0f, 0.0f), new Vector3f(0.0f, 0.0f, 1.0f)),
+            new Vertex(new Vector3f(-0.5f, -0.75f, 0.0f), new Vector3f(1.0f, 0.0f, 0.0f)),
+            new Vertex(new Vector3f(0f, 0.5f, 0.0f), new Vector3f(0.0f, 1.0f, 0.0f)),
+            new Vertex(new Vector3f(-1f, 0.5f, 0.0f), new Vector3f(0.0f, 0.0f, 1.0f)),
     };
 
     private static final short[] indices = new short[]{
@@ -83,9 +89,9 @@ public class Renderer {
     };
 
     private static final Vertex[] vertices2 = new Vertex[]{
-            new Vertex(new Vector3f(-0.5f, -0.5f, 0.0f), new Vector3f(1.0f, 0.0f, 0.0f)),
-            new Vertex(new Vector3f(-0.5f, 0.5f, 0.0f), new Vector3f(0.0f, 1.0f, 0.0f)),
-            new Vertex(new Vector3f(-1f, 0.5f, 0.0f), new Vector3f(0.0f, 0.0f, 1.0f)),
+            new Vertex(new Vector3f(0.5f, -0.75f, 0f), new Vector3f(1.0f, 0.0f, 0.0f)),
+            new Vertex(new Vector3f(1f, 0.5f, 0f), new Vector3f(0.0f, 1.0f, 0.0f)),
+            new Vertex(new Vector3f(0f, 0.5f, 0f), new Vector3f(0.0f, 0.0f, 1.0f)),
     };
 
     private static final short[] indices2 = new short[]{
@@ -93,15 +99,18 @@ public class Renderer {
     };
 
     private static final Vertex[] vertices3 = new Vertex[]{
-            new Vertex(new Vector3f(0.75f, -0.5f, 0.0f), new Vector3f(1.0f, 0.0f, 0.0f)),
-            new Vertex(new Vector3f(1f, 0f, 0.0f), new Vector3f(0.0f, 1.0f, 0.0f)),
-            new Vertex(new Vector3f(0.5f, 0f, 0.0f), new Vector3f(0.0f, 0.0f, 1.0f)),
+            new Vertex(new Vector3f(0f, 0.5f, 0.0f), new Vector3f(1.0f, 0.0f, 0.0f)),
+            new Vertex(new Vector3f(-0.5f, -0.75f, 0f), new Vector3f(0.0f, 1.0f, 0.0f)),
+            new Vertex(new Vector3f(0.5f, -0.75f, 0f), new Vector3f(0.0f, 0.0f, 1.0f)),
     };
 
     private static final short[] indices3 = new short[]{
             0,1,2
     };
+
     private static ArrayList<Mesh> meshes;
+    private static Camera camera;
+
 
     public Renderer() {
         instance = new Instance();
@@ -112,11 +121,13 @@ public class Renderer {
         graphicsPipeline = new GraphicsPipeline();
         renderPass = new RenderPass();
         frameBuffers = new FrameBuffers();
+        descriptorPool = new DescriptorPool();
         graphicsCommandPool = new CommandPool();
         transferCommandPool = new CommandPool();
         commandBuffers = new CommandBuffers();
-        renderUpdater = new RenderUpdater();
         sync = new Sync();
+        camera = new Camera();
+        renderUpdater = new RenderUpdater();
     }
 
     public static void init(){
@@ -137,26 +148,29 @@ public class Renderer {
 
         MemoryUtillities.init(vkInstance, pDevice, lDevice);
 
+        vkDescriptorPool = descriptorPool.create(lDevice,swapchain);
         vkGraphicsCommandPool = graphicsCommandPool.create(physicalDevice, lDevice,0);
         vkTransferCommandPool = transferCommandPool.create(physicalDevice, lDevice,VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
 
 
-        Mesh mesh = new Mesh(lDevice, vkTransferCommandPool, logicalDevice.getGraphicsQueue());
-        mesh.create(vertices, indices);
+        Mesh mesh = new Mesh(lDevice, vkTransferCommandPool, logicalDevice.getGraphicsQueue(), swapchain);
+        mesh.create(vertices, indices, vkDescriptorSetLayout, vkDescriptorPool);
 
-        Mesh mesh2 = new Mesh(lDevice, vkTransferCommandPool, logicalDevice.getGraphicsQueue());
-        mesh2.create(vertices2, indices2);
+        Mesh mesh2 = new Mesh(lDevice, vkTransferCommandPool, logicalDevice.getGraphicsQueue(), swapchain);
+        mesh2.create(vertices2, indices2, vkDescriptorSetLayout, vkDescriptorPool);
 
-        Mesh mesh3 = new Mesh(lDevice, vkTransferCommandPool, logicalDevice.getGraphicsQueue());
-        mesh3.create(vertices3, indices3);
+        Mesh mesh3 = new Mesh(lDevice, vkTransferCommandPool, logicalDevice.getGraphicsQueue(), swapchain);
+        mesh3.create(vertices3, indices3, vkDescriptorSetLayout, vkDescriptorPool);
 
         meshes = new ArrayList<Mesh>();
         meshes.add(mesh);
         meshes.add(mesh2);
         meshes.add(mesh3);
 
+        camera.create(lDevice, swapchain, vkDescriptorSetLayout, vkDescriptorPool);
+
         vkCommandBuffers = commandBuffers.create(lDevice,swapchain, vkGraphicsCommandPool);
-        commandBuffers.record(swapchain,renderPass,graphicsPipeline,frameBuffers, meshes);
+        commandBuffers.record(swapchain,renderPass,graphicsPipeline,frameBuffers, meshes, camera);
         sync.create(lDevice,swapchain , renderUpdater.getMaxFrames());
         renderUpdater.create(logicalDevice,swapchain,commandBuffers,sync);
     }
@@ -165,6 +179,8 @@ public class Renderer {
 
         renderUpdater.destroy();
         graphicsCommandPool.destroy(lDevice);
+        camera.destroy();
+        descriptorPool.destroy();
         frameBuffers.destroy(lDevice);
         graphicsPipeline.destroy(lDevice);
         renderPass.destroy(lDevice);
@@ -176,19 +192,27 @@ public class Renderer {
 
         vkSwapchain = swapchain.create(physicalDevice,lDevice,window,VK_NULL_HANDLE);
         swapchainImagesViews = swapchain.createSwapchainImageViews(lDevice);
+
+
         vkRenderpass = renderPass.create(lDevice, swapchain);
         vkGraphicsPipeline = graphicsPipeline.create(lDevice, swapchain, renderPass,vkDescriptorSetLayout);
         vkframebuffers = frameBuffers.create(lDevice, swapchain, renderPass);
+        vkDescriptorPool = descriptorPool.create(lDevice,swapchain);
         vkGraphicsCommandPool = graphicsCommandPool.create(physicalDevice, lDevice,0);
-        vkCommandBuffers = commandBuffers.create(lDevice,swapchain, vkGraphicsCommandPool);
-        commandBuffers.record(swapchain,renderPass,graphicsPipeline,frameBuffers,meshes);
 
+
+        camera.recreate(swapchain, vkDescriptorSetLayout, vkDescriptorPool);
+
+        vkCommandBuffers = commandBuffers.create(lDevice,swapchain, vkGraphicsCommandPool);
+        commandBuffers.record(swapchain,renderPass,graphicsPipeline,frameBuffers,meshes, camera);
         renderUpdater.create(logicalDevice,swapchain,commandBuffers,sync);
     }
 
     public static void cleanUp(){
 
         renderUpdater.destroy();
+
+        camera.destroy();
 
         for(Mesh mesh : meshes){
             mesh.destroy();
@@ -199,6 +223,8 @@ public class Renderer {
         graphicsCommandPool.destroy(lDevice);
 
         transferCommandPool.destroy(lDevice);
+
+        descriptorPool.destroy();
 
         MemoryUtillities.destroy();
 
@@ -242,10 +268,24 @@ public class Renderer {
 
     public static void render(){
 
-        renderUpdater.update();
+        renderUpdater.update(meshes, camera);
     }
 
     public static Window getWindow() {
         return window;
+    }
+
+    public static Camera getCamera(){
+        return camera;
+    }
+
+    public static void setCamera(float x, float y, float z, float xx, float yy, float zz){
+        camera.setX(x);
+        camera.setY(y);
+        camera.setZ(z);
+        camera.setXX(xx);
+        camera.setYY(yy);
+        camera.setZZ(zz);
+        camera.update();
     }
 }
